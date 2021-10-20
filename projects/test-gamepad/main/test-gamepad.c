@@ -15,7 +15,7 @@ bool states[12];
 //uint16_t buttonmask = 0;
 bool led;
 
-enum keys{
+enum{
 	BUTTON_DPAD_UP		= 7,
 	BUTTON_DPAD_DOWN	= 2,
 	BUTTON_DPAD_LEFT	= 5,
@@ -28,7 +28,7 @@ enum keys{
 	BUTTON_B			= 1,
 	BUTTON_X			= 11,
 	BUTTON_Y			= 8,
-};
+} keys;
 
 void app_main(void)
 {

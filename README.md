@@ -72,7 +72,7 @@
 	- Tworzenie gier na sprzęt
 	- Tworzenie testów integracyjnych
  - Technik Programista - Piotr Zieniewicz:
-	- Tworznie biblioteki sprzętowej
+	- Tworzenie biblioteki sprzętowej
 	- Testowanie nowych funkcjonalności
 	- Tworzenie gier na sprzęt
 
