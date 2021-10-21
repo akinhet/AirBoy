@@ -10,6 +10,8 @@
 #define LCD_HEIGHT 240
 #define LCD_DEPTH 2
 
+#define BYTES_TO_BITS(value) ((value) * 8)
+
 enum pins{
 	LCD_PIN_MISO	= 19,
 	LCD_PIN_MOSI	= 23,
@@ -40,6 +42,34 @@ typedef struct{
 	uint8_t length;
 } Command;
 
+Command StartupCommands[] = {
+	{ 
+		SOFTWARE_RESET, 
+		{}, 
+		0 
+	},
+	{
+		MEMORY_ACCESS_CONTROL,
+		{0x20 | 0xc0 | 0x08},
+		1
+	},
+	{
+		PIXEL_FORMAT_SET,
+		{0x55},
+		1
+	},
+	{
+		SLEEP_OUT,
+		{},
+		0
+	},
+	{
+		DISPLAY_ON,
+		{},
+		0
+	},
+};
+
 spi_bus_config_t spiBusConfig = {};
 
 spiBusConfig.miso_io_num = LCD_PIN_MISO;
@@ -57,6 +87,19 @@ spiDeviceConfig.clock_speed_hz = SPI_MASTER_FREQ_40M;
 spiDeviceConfig.spics_io_num = LCD_PIN_CS;
 spiDeviceConfig.queue_size = 1;
 spiDeviceConfig.flags = SPI_DEVICE_NO_DUMMY;
+
+
+void sendCommand(CommandCode code)
+{
+	spi_transaction_t transaction = {};
+
+	transaction.length = BYTES_TO_BITS(1);
+	transaction.tx_data[0] = (uint8_t)code;
+	transaction.flags = SPI_TRANS_USE_TXDATA;
+
+	gpio_set_level(LCD_PIN_DC, 0);
+	spi_device_transmit(gSpiHandle, &transaction);
+}
 
 
 void app_main(void)
