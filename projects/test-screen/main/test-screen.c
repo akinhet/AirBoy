@@ -47,6 +47,8 @@ typedef struct{
 	uint8_t length;
 } Command;
 
+static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+
 
 Command StartupCommands[] = {
 	{ 
@@ -163,8 +165,23 @@ void app_main(void)
 	ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &spiBusConfig, 1));
 	ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &spiDeviceConfig, &gSpiHandle));
 
-	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
-
 	setupDisplay();
+
+	uint16_t = 0xFFFF;
+
+	int x = 0;
+	int y = 0;
+
+	int width  = 50;
+	int height = 50;
+
+	while (true) {
+		memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+
+		for (int row = y; row < y + height; row++)
+			for (int col = x; col < x + width; col ++)
+				frameBuffer[LCD_WIDTH * row + col] = color;
+	}
+
 	esp_restart();
 }
