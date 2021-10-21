@@ -10,6 +10,13 @@
 #define LCD_HEIGHT 240
 #define LCD_DEPTH 2
 
+#define BYTES_TO_BITS(value)		( (value) * 8 )
+#define ARRAY_COUNT(value)			( sizeof(value) / sizeof(value[0]) )
+#define UPPER_BYTE_16(value)		( (value) >> 8u )
+#define LOWER_BYTE_16(value)		( (value) & 0xFFu )
+#define RGB565(red, green, blue)	( (((red) >> 3u) << 11u) | (((green) >> 2u) << 5u) | ((blue) >> 3u))
+#define SWAP_ENDIAN_16(value)		( (((value) & 0xFFu) << 8u) | ((value) >> 8u) )
+
 enum pins{
 	LCD_PIN_MISO	= 19,
 	LCD_PIN_MOSI	= 23,
@@ -40,6 +47,35 @@ typedef struct{
 	uint8_t length;
 } Command;
 
+
+Command StartupCommands[] = {
+	{ 
+		SOFTWARE_RESET, 
+		{}, 
+		0 
+	},
+	{
+		MEMORY_ACCESS_CONTROL,
+		{0x20 | 0xc0 | 0x08},
+		1
+	},
+	{
+		PIXEL_FORMAT_SET,
+		{0x55},
+		1
+	},
+	{
+		SLEEP_OUT,
+		{},
+		0
+	},
+	{
+		DISPLAY_ON,
+		{},
+		0
+	},
+};
+
 spi_bus_config_t spiBusConfig = {};
 
 spiBusConfig.miso_io_num = LCD_PIN_MISO;
@@ -59,6 +95,65 @@ spiDeviceConfig.queue_size = 1;
 spiDeviceConfig.flags = SPI_DEVICE_NO_DUMMY;
 
 
+void sendCommand(CommandCode code)
+{
+	spi_transaction_t transaction = {};
+
+	transaction.length = BYTES_TO_BITS(1);
+	transaction.tx_data[0] = (uint8_t)code;
+	transaction.flags = SPI_TRANS_USE_TXDATA;
+
+	gpio_set_level(LCD_PIN_DC, 0);
+	spi_device_transmit(gSpiHandle, &transaction);
+}
+
+
+void sendCommandParameters(uint8_t* data, int length)
+{
+	spi_transaction_t transaction = {};
+
+	transaction.length = BYTES_TO_BITS(length);
+	transaction.tx_buffer = data;
+	transaaction.flags = 0;
+
+	gpio_set_level(LCD_PIN_DC, 1);
+	spi_device_transmit(gSpiHandle, &transaction);
+}
+
+
+void frameDraw(uint8_t* buffer)
+{
+	uint8_t drawWidth[] = { 0,0, UPPER_BYTE_16(LCD_WIDTH), LOWER_BYTE_16(LCD_WIDTH) };
+	sendCommand(COLUMN_ADDRESS_SET);
+	sendCommandParameters(drawWidth, ARRAY_COUNT(drawWidth));
+
+	uint8_t drawHeight[] = { 0,0, UPPER_BYTE_16(LCD_HEIGHT), LOWER_BYTE_16(LCD_HEIGHT) };
+	sendCommand(PAGE_ADDRESS_SET);
+	sendCommandParameters(drawHeight, ARRAY_COUNT(drawHeight));
+
+	sendCommand(MEMORY_WRITE);
+	sendCommandParameters(buffer, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+}
+
+
+void setupDisplay()
+{
+	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
+
+	int commandCount = ARRAY_COUNT(StartupCommands);
+
+	for (int i = 0; i < commanCount; i++) {
+		Command* command = &StartupCommands[i];
+
+		sendCommand(command->code);
+
+		if (command->length > 0) {
+			sendCommandParameters(command->parameters, command->length);
+		}
+	}
+}
+
+
 void app_main(void)
 {
 	// log starting message
@@ -69,4 +164,7 @@ void app_main(void)
 	ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &spiDeviceConfig, &gSpiHandle));
 
 	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
+
+	setupDisplay();
+	esp_restart();
 }
