@@ -1,3 +1,4 @@
+.ccls_cache
 projects/*/build
 projects/*/.ccls_cache
 projects/*/main/.ccls-cache

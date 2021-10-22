@@ -5,10 +5,13 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
+#include "driver/spi_common.h"
+#include "driver/spi_master.h"
 
 #define LCD_WIDTH 320
 #define LCD_HEIGHT 240
 #define LCD_DEPTH 2
+#define TASKNAME "main"
 
 #define BYTES_TO_BITS(value)		( (value) * 8 )
 #define ARRAY_COUNT(value)			( sizeof(value) / sizeof(value[0]) )
@@ -58,7 +61,7 @@ Command StartupCommands[] = {
 	},
 	{
 		MEMORY_ACCESS_CONTROL,
-		{0x20 | 0xc0 | 0x08},
+		{0x20 | 0xC0 | 0x08},
 		1
 	},
 	{
@@ -78,23 +81,7 @@ Command StartupCommands[] = {
 	},
 };
 
-spi_bus_config_t spiBusConfig = {};
-
-spiBusConfig.miso_io_num = LCD_PIN_MISO;
-spiBusConfig.mosi_io_num = LCD_PIN_MOSI;
-spiBusConfig.sclk_io_num = LCD_PIN_SCLK;
-spiBusConfig.quadwp_io_num = -1;
-spiBusConfig.quadhp_io_num = -1;
-spiBusConfig.max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH;
-
-spi_handle_t gSpiHandle;
-
-spi_device_interface_config_t spiDeviceConfig = {};
-
-spiDeviceConfig.clock_speed_hz = SPI_MASTER_FREQ_40M;
-spiDeviceConfig.spics_io_num = LCD_PIN_CS;
-spiDeviceConfig.queue_size = 1;
-spiDeviceConfig.flags = SPI_DEVICE_NO_DUMMY;
+spi_device_handle_t gSpiHandle;
 
 
 void sendCommand(CommandCode code)
@@ -116,7 +103,7 @@ void sendCommandParameters(uint8_t* data, int length)
 
 	transaction.length = BYTES_TO_BITS(length);
 	transaction.tx_buffer = data;
-	transaaction.flags = 0;
+	transaction.flags = 0;
 
 	gpio_set_level(LCD_PIN_DC, 1);
 	spi_device_transmit(gSpiHandle, &transaction);
@@ -140,11 +127,41 @@ void frameDraw(uint8_t* buffer)
 
 void setupDisplay()
 {
+	ESP_LOGI(TASKNAME, "Initializing display...");
+
+	{
+		spi_bus_config_t spiBusConfig = {};
+
+		spiBusConfig.miso_io_num = LCD_PIN_MISO;
+		spiBusConfig.mosi_io_num = LCD_PIN_MOSI;
+		spiBusConfig.sclk_io_num = LCD_PIN_SCLK;
+		spiBusConfig.quadwp_io_num = -1;
+		spiBusConfig.quadhd_io_num = -1;
+		spiBusConfig.max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH;
+
+		ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &spiBusConfig, 1));
+		
+		ESP_LOGI(TASKNAME, "Initialized spi bus");
+	}
+
+	{
+		spi_device_interface_config_t spiDeviceConfig = {};
+
+		spiDeviceConfig.clock_speed_hz = SPI_MASTER_FREQ_20M;
+		spiDeviceConfig.spics_io_num = LCD_PIN_CS;
+		spiDeviceConfig.queue_size = 1;
+		spiDeviceConfig.flags = SPI_DEVICE_NO_DUMMY;
+
+		ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &spiDeviceConfig, &gSpiHandle));
+
+		ESP_LOGI(TASKNAME, "Added screen to the spi bus");
+	}
+
 	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
 
 	int commandCount = ARRAY_COUNT(StartupCommands);
 
-	for (int i = 0; i < commanCount; i++) {
+	for (int i = 0; i < commandCount; i++) {
 		Command* command = &StartupCommands[i];
 
 		sendCommand(command->code);
@@ -153,21 +170,19 @@ void setupDisplay()
 			sendCommandParameters(command->parameters, command->length);
 		}
 	}
+	ESP_LOGI(TASKNAME, "Initialized display");
 }
 
 
 void app_main(void)
 {
 	// log starting message
-	char *taskName = pcTaskGetName(NULL);
-	ESP_LOGI(taskName, "Hello, starting up\n");
-
-	ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &spiBusConfig, 1));
-	ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &spiDeviceConfig, &gSpiHandle));
+//	char *taskName = pcTaskGetName(NULL);
+	ESP_LOGI(TASKNAME, "Hello, starting up");
 
 	setupDisplay();
 
-	uint16_t = 0xFFFF;
+	uint16_t color = 0xFFFF;
 
 	int x = 0;
 	int y = 0;
@@ -179,8 +194,10 @@ void app_main(void)
 		memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
 
 		for (int row = y; row < y + height; row++)
-			for (int col = x; col < x + width; col ++)
+			for (int col = x; col < x + width; col++)
 				frameBuffer[LCD_WIDTH * row + col] = color;
+
+		frameDraw(frameBuffer);
 	}
 
 	esp_restart();
