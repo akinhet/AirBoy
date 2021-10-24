@@ -48,36 +48,85 @@ typedef struct{
 	CommandCode code;
 	uint8_t parameters[15];
 	uint8_t length;
+	int delay;
 } Command;
 
 static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 
+// https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.cpp#L151
 Command StartupCommands[] = {
 	{ 
 		SOFTWARE_RESET, 
 		{}, 
-		0 
+		0,
+		150
+	},
+	{
+		0xEF,
+		{0x03, 0x80, 0x02},
+		3,
+		0
+	},
+	{
+		0xCF,
+		{0x00, 0xC1, 0x30},
+		3,
+		0
+	},
+	{
+		0xED,
+		{0x64, 0x03, 0x12, 0x81},
+		4,
+		0
+	},
+	{
+		0xE8,
+		{0x85, 0x00, 0x78},
+		3,
+		0
+	},
+	{
+		0xCB,
+		{0x39, 0x2C, 0x00, 0x34, 0x02},
+		5,
+		0
+	},
+	{
+		0xF7,
+		{0x20},
+		1,
+		0
+	},
+	{
+		0xEA,
+		{0x00, 0x00},
+		2,
+		0
 	},
 	{
 		MEMORY_ACCESS_CONTROL,
 		{0x20 | 0xC0 | 0x08},
-		1
+		1,
+		5
 	},
 	{
 		PIXEL_FORMAT_SET,
 		{0x55},
-		1
+		1,
+		5
 	},
 	{
 		SLEEP_OUT,
 		{},
-		0
+		0,
+		150
 	},
 	{
 		DISPLAY_ON,
 		{},
-		0
+		0,
+		150
 	},
 };
 
@@ -147,7 +196,7 @@ void setupDisplay()
 	{
 		spi_device_interface_config_t spiDeviceConfig = {};
 
-		spiDeviceConfig.clock_speed_hz = SPI_MASTER_FREQ_20M;
+		spiDeviceConfig.clock_speed_hz = SPI_MASTER_FREQ_40M;
 		spiDeviceConfig.spics_io_num = LCD_PIN_CS;
 		spiDeviceConfig.queue_size = 1;
 		spiDeviceConfig.flags = SPI_DEVICE_NO_DUMMY;
@@ -166,9 +215,11 @@ void setupDisplay()
 
 		sendCommand(command->code);
 
-		if (command->length > 0) {
+		if (command->length > 0) 
 			sendCommandParameters(command->parameters, command->length);
-		}
+
+		if (command->delay > 0)
+			vTaskDelay(command->delay / portTICK_PERIOD_MS);
 	}
 	ESP_LOGI(TASKNAME, "Initialized display");
 }
