@@ -30,18 +30,24 @@ enum pins{
 };
 
 typedef enum{
-	SOFTWARE_RESET			= 0x01u,
-	DISPLAY_OFF				= 0x28u,
-	DISPLAY_ON				= 0x29u,
-	ENTER_SLEEP_MODE		= 0x10u,
-	SLEEP_OUT				= 0x11u,
-	DISPLAY_INVERSION_OFF	= 0x20u,
-	DISPLAY_INVERSION_ON	= 0x21u,
-	COLUMN_ADDRESS_SET		= 0x2Au,
-	PAGE_ADDRESS_SET		= 0x2Bu,
-	MEMORY_WRITE			= 0x2Cu,
-	MEMORY_ACCESS_CONTROL	= 0x36u,
-	PIXEL_FORMAT_SET		= 0x3Au,
+	SOFTWARE_RESET				= 0x01u,
+	DISPLAY_OFF					= 0x28u,
+	DISPLAY_ON					= 0x29u,
+	ENTER_SLEEP_MODE			= 0x10u,
+	SLEEP_OUT					= 0x11u,
+	DISPLAY_INVERSION_OFF		= 0x20u,
+	DISPLAY_INVERSION_ON		= 0x21u,
+	COLUMN_ADDRESS_SET			= 0x2Au,
+	PAGE_ADDRESS_SET			= 0x2Bu,
+	MEMORY_WRITE				= 0x2Cu,
+	MEMORY_ACCESS_CONTROL		= 0x36u,
+	PIXEL_FORMAT_SET			= 0x3Au,
+	FRAME_RATE_CONTROL_1		= 0xB1u,
+	DISPLAY_FUNCTION_CONTROL	= 0xB6u,
+	POWER_CONTROL_1				= 0xC0u,
+	POWER_CONTROL_2				= 0xC1u,
+	VCOM_CONTROL_1				= 0xC5u,
+	VCOM_CONTROL_2				= 0xC7u,
 } CommandCode;
 
 typedef struct{
@@ -63,83 +69,65 @@ Command StartupCommands[] = {
 		150
 	},
 	{
-		0xEF,
-		{0x03, 0x80, 0x02},
-		3,
-		0
-	},
-	{
 		0xCF,
 		{0x00, 0xC1, 0x30},
 		3,
-		0
-	},
-	{
-		0xED,
-		{0x64, 0x03, 0x12, 0x81},
-		4,
-		0
-	},
-	{
-		0xE8,
-		{0x85, 0x00, 0x78},
-		3,
-		0
-	},
-	{
-		0xCB,
-		{0x39, 0x2C, 0x00, 0x34, 0x02},
-		5,
-		0
-	},
-	{
-		0xF7,
-		{0x20},
-		1,
-		0
-	},
-	{
-		0xEA,
-		{0x00, 0x00},
-		2,
-		0
-	},
-	{
-		0xC0,
-		{0x23},
-		1,
-		0
-	},
-	{
-		0xC1,
-		{0x10},
-		1,
-		0
-	},
-	{
-		0xC5,
-		{0x3E, 0x28},
-		2,
-		0
-	},
-	{
-		0xC7,
-		{0x86},
-		1,
-		0
-	},
-	{
-		MEMORY_ACCESS_CONTROL,
-		{0x20 | 0xC0 | 0x08},
-		1,
 		5
 	},
-	{
-		0x37,
-		{0x00},
-		1,
-		0
-	},
+	/*{*/
+		/*0xED,*/
+		/*{0x64, 0x03, 0x12, 0x81},*/
+		/*4,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xE8,*/
+		/*{0x85, 0x00, 0x78},*/
+		/*3,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xCB,*/
+		/*{0x39, 0x2C, 0x00, 0x34, 0x02},*/
+		/*5,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xF7,*/
+		/*{0x20},*/
+		/*1,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xEA,*/
+		/*{0x00, 0x00},*/
+		/*2,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*POWER_CONTROL_1,*/
+		/*{0x10},*/
+		/*1,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*POWER_CONTROL_2,*/
+		/*{0x00},*/
+		/*1,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*VCOM_CONTROL_1,*/
+		/*{0x30, 0x30},*/
+		/*2,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*VCOM_CONTROL_2,*/
+		/*{0xB7},*/
+		/*1,*/
+		/*5*/
+	/*},*/
 	{
 		PIXEL_FORMAT_SET,
 		{0x55},
@@ -147,35 +135,60 @@ Command StartupCommands[] = {
 		5
 	},
 	{
-		0xB1,
-		{0x00, 0x18},
-		2,
-		0
-	},
-	{
-		0xB6,
-		{0x08, 0x82, 0x27},
-		3,
-		0
-	},
-	{
-		0xF2,
-		{0x00},
+		MEMORY_ACCESS_CONTROL,
+		//{0x20 | 0xC0 | 0x08},
+		{0x08},
 		1,
-		0
+		5
 	},
-	{
-		0x26,
-		{0x01},
-		1,
-		0
-	},
-	{
-		0xE0,
-		{0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00},
-		15,
-		0
-	},
+	/*{*/
+		/*FRAME_RATE_CONTROL_1,*/
+		/*{0x00, 0x1A},*/
+		/*2,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*DISPLAY_FUNCTION_CONTROL,*/
+		/*{0x08, 0x82, 0x27},*/
+		/*3,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xF2,*/
+		/*{0x00},*/
+		/*1,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0x26,*/
+		/*{0x01},*/
+		/*1,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xE0,*/
+		/*{0x0F, 0x2A, 0x2B, 0x08, 0x0E, 0x08, 0x54, 0xA9, 0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00},*/
+		/*15,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0xE1,*/
+		/*{0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56, 0x3C, 0x05, 0x10, 0x0F, 0x3F, 0x3F, 0x0F},*/
+		/*15,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0x2B,*/
+		/*{0x00, 0x00, 0x01, 0x3F},*/
+		/*4,*/
+		/*5*/
+	/*},*/
+	/*{*/
+		/*0x2A,*/
+		/*{0x00, 0x00, 0x00, 0xEF},*/
+		/*4,*/
+		/*5*/
+	/*},*/
 	{
 		SLEEP_OUT,
 		{},
@@ -295,8 +308,8 @@ void app_main(void)
 
 	uint16_t color = 0xFFFF;
 
-	int x = 0;
-	int y = 0;
+	int x = 50;
+	int y = 50;
 
 	int width  = 50;
 	int height = 50;
