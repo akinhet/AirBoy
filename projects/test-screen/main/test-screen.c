@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-#include "driver/gpio.h"
-#include "driver/spi_common.h"
-#include "driver/spi_master.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <esp_log.h>
+#include <driver/gpio.h>
+#include <driver/spi_common.h>
+#include <driver/spi_master.h>
 
 #define LCD_WIDTH 320
 #define LCD_HEIGHT 240
@@ -27,27 +27,30 @@ enum pins{
 	LCD_PIN_CS		= 15,
 	LCD_PIN_DC		=  2,
 	LCD_PIN_RESET	=  4,
+	INPUT_CLK		= 25,
+	INPUT_LATCH		= 33,
+	INPUT_IN		= 32,
 };
 
 typedef enum{
-	SOFTWARE_RESET				= 0x01u,
-	DISPLAY_OFF					= 0x28u,
-	DISPLAY_ON					= 0x29u,
-	ENTER_SLEEP_MODE			= 0x10u,
-	SLEEP_OUT					= 0x11u,
-	DISPLAY_INVERSION_OFF		= 0x20u,
-	DISPLAY_INVERSION_ON		= 0x21u,
-	COLUMN_ADDRESS_SET			= 0x2Au,
-	PAGE_ADDRESS_SET			= 0x2Bu,
-	MEMORY_WRITE				= 0x2Cu,
-	MEMORY_ACCESS_CONTROL		= 0x36u,
-	PIXEL_FORMAT_SET			= 0x3Au,
-	FRAME_RATE_CONTROL_1		= 0xB1u,
-	DISPLAY_FUNCTION_CONTROL	= 0xB6u,
-	POWER_CONTROL_1				= 0xC0u,
-	POWER_CONTROL_2				= 0xC1u,
-	VCOM_CONTROL_1				= 0xC5u,
-	VCOM_CONTROL_2				= 0xC7u,
+	SOFTWARE_RESET				= 0x01,
+	DISPLAY_OFF					= 0x28,
+	DISPLAY_ON					= 0x29,
+	ENTER_SLEEP_MODE			= 0x10,
+	SLEEP_OUT					= 0x11,
+	DISPLAY_INVERSION_OFF		= 0x20,
+	DISPLAY_INVERSION_ON		= 0x21,
+	COLUMN_ADDRESS_SET			= 0x2A,
+	PAGE_ADDRESS_SET			= 0x2B,
+	MEMORY_WRITE				= 0x2C,
+	MEMORY_ACCESS_CONTROL		= 0x36,
+	PIXEL_FORMAT_SET			= 0x3A,
+	FRAME_RATE_CONTROL_1		= 0xB1,
+	DISPLAY_FUNCTION_CONTROL	= 0xB6,
+	POWER_CONTROL_1				= 0xC0,
+	POWER_CONTROL_2				= 0xC1,
+	VCOM_CONTROL_1				= 0xC5,
+	VCOM_CONTROL_2				= 0xC7,
 } CommandCode;
 
 typedef struct{
@@ -57,10 +60,24 @@ typedef struct{
 	int delay;
 } Command;
 
+typedef struct{
+	uint16_t dpad_up		: 1; //  7
+	uint16_t dpad_down		: 1; //  2
+	uint16_t dpad_left		: 1; //  5
+	uint16_t dpad_right		: 1; //  4
+	uint16_t select			: 1; //  3
+	uint16_t start			: 1; //  0
+	uint16_t bumper_left	: 1; //  6
+	uint16_t bumper_right	: 1; // 10
+	uint16_t a				: 1; //  9
+	uint16_t b				: 1; //  1
+	uint16_t x				: 1; // 11
+	uint16_t y				: 1; //  8
+} Input;
+
 static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 
-// https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.cpp#L151
 Command StartupCommands[] = {
 	{ 
 		SOFTWARE_RESET, 
@@ -69,66 +86,6 @@ Command StartupCommands[] = {
 		150
 	},
 	{
-		0xCF,
-		{0x00, 0xC1, 0x30},
-		3,
-		5
-	},
-	/*{*/
-		/*0xED,*/
-		/*{0x64, 0x03, 0x12, 0x81},*/
-		/*4,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xE8,*/
-		/*{0x85, 0x00, 0x78},*/
-		/*3,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xCB,*/
-		/*{0x39, 0x2C, 0x00, 0x34, 0x02},*/
-		/*5,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xF7,*/
-		/*{0x20},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xEA,*/
-		/*{0x00, 0x00},*/
-		/*2,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*POWER_CONTROL_1,*/
-		/*{0x10},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*POWER_CONTROL_2,*/
-		/*{0x00},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*VCOM_CONTROL_1,*/
-		/*{0x30, 0x30},*/
-		/*2,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*VCOM_CONTROL_2,*/
-		/*{0xB7},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	{
 		PIXEL_FORMAT_SET,
 		{0x55},
 		1,
@@ -136,8 +93,8 @@ Command StartupCommands[] = {
 	},
 	{
 		MEMORY_ACCESS_CONTROL,
-		//{0x20 | 0xC0 | 0x08},
-		{0x08},
+		{0x20 | 0xC0 | 0x08},
+		//{0x08},
 		1,
 		5
 	},
@@ -151,42 +108,6 @@ Command StartupCommands[] = {
 		/*DISPLAY_FUNCTION_CONTROL,*/
 		/*{0x08, 0x82, 0x27},*/
 		/*3,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xF2,*/
-		/*{0x00},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0x26,*/
-		/*{0x01},*/
-		/*1,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xE0,*/
-		/*{0x0F, 0x2A, 0x2B, 0x08, 0x0E, 0x08, 0x54, 0xA9, 0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00},*/
-		/*15,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0xE1,*/
-		/*{0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56, 0x3C, 0x05, 0x10, 0x0F, 0x3F, 0x3F, 0x0F},*/
-		/*15,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0x2B,*/
-		/*{0x00, 0x00, 0x01, 0x3F},*/
-		/*4,*/
-		/*5*/
-	/*},*/
-	/*{*/
-		/*0x2A,*/
-		/*{0x00, 0x00, 0x00, 0xEF},*/
-		/*4,*/
 		/*5*/
 	/*},*/
 	{
@@ -215,7 +136,8 @@ void sendCommand(CommandCode code)
 	transaction.flags = SPI_TRANS_USE_TXDATA;
 
 	gpio_set_level(LCD_PIN_DC, 0);
-	spi_device_transmit(gSpiHandle, &transaction);
+	ESP_ERROR_CHECK(spi_device_transmit(gSpiHandle, &transaction));
+	ESP_LOGI(TASKNAME, "Send command");
 }
 
 
@@ -228,11 +150,12 @@ void sendCommandParameters(uint8_t* data, int length)
 	transaction.flags = 0;
 
 	gpio_set_level(LCD_PIN_DC, 1);
-	spi_device_transmit(gSpiHandle, &transaction);
+	ESP_ERROR_CHECK(spi_device_transmit(gSpiHandle, &transaction));
+	ESP_LOGI(TASKNAME, "Send parameters");
 }
 
 
-void frameDraw(uint8_t* buffer)
+void frameDraw(uint16_t* buffer)
 {
 	uint8_t drawWidth[] = { 0,0, UPPER_BYTE_16(LCD_WIDTH), LOWER_BYTE_16(LCD_WIDTH) };
 	sendCommand(COLUMN_ADDRESS_SET);
@@ -243,7 +166,7 @@ void frameDraw(uint8_t* buffer)
 	sendCommandParameters(drawHeight, ARRAY_COUNT(drawHeight));
 
 	sendCommand(MEMORY_WRITE);
-	sendCommandParameters(buffer, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+	sendCommandParameters((uint8_t*)buffer, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
 }
 
 
@@ -280,6 +203,15 @@ void setupDisplay()
 	}
 
 	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
+	gpio_set_direction(LCD_PIN_RESET, GPIO_MODE_OUTPUT);
+
+	gpio_set_level(LCD_PIN_RESET, 1);
+	vTaskDelay(5 / portTICK_PERIOD_MS);
+	gpio_set_level(LCD_PIN_RESET, 0);
+	vTaskDelay(20 / portTICK_PERIOD_MS);
+	gpio_set_level(LCD_PIN_RESET, 1);
+
+
 
 	int commandCount = ARRAY_COUNT(StartupCommands);
 
@@ -297,24 +229,126 @@ void setupDisplay()
 	ESP_LOGI(TASKNAME, "Initialized display");
 }
 
+void setupInput()
+{
+	// set up pins
+	gpio_reset_pin(INPUT_CLK);
+	gpio_set_direction(INPUT_CLK, GPIO_MODE_OUTPUT);
+	gpio_set_pull_mode(INPUT_CLK, GPIO_PULLUP_ONLY);
+	
+	gpio_reset_pin(INPUT_LATCH);
+	gpio_set_direction(INPUT_LATCH, GPIO_MODE_OUTPUT);
+	gpio_set_pull_mode(INPUT_LATCH, GPIO_PULLUP_ONLY);
+
+	gpio_reset_pin(INPUT_IN);
+	gpio_set_direction(INPUT_IN, GPIO_MODE_INPUT);
+	gpio_set_pull_mode(INPUT_IN, GPIO_PULLUP_ONLY);
+}
+
+Input pollInput()
+{
+	// refresh bit shifter
+	gpio_set_level(INPUT_LATCH, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_LATCH, 1);
+
+	Input input;
+
+	// get pin states
+	input.start = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.b = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.dpad_down = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.select = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.dpad_right = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.dpad_left = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.bumper_left = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.dpad_up = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.y = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.a = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.bumper_right = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	input.x = !gpio_get_level(INPUT_IN);
+	gpio_set_level(INPUT_CLK, 0);
+	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+
+	return input;
+}
+
 
 void app_main(void)
 {
 	// log starting message
-//	char *taskName = pcTaskGetName(NULL);
 	ESP_LOGI(TASKNAME, "Hello, starting up");
 
 	setupDisplay();
+	setupInput();
+
+	Input input;
 
 	uint16_t color = 0xFFFF;
 
-	int x = 50;
-	int y = 50;
+	int x = 0;
+	int y = 0;
 
 	int width  = 50;
 	int height = 50;
 
 	while (true) {
+		input = pollInput();
+
+		if (input.dpad_up == 1)
+			y -= 5;
+		if (input.dpad_down == 1)
+			y += 5;
+		if (input.dpad_right == 1)
+			x += 5;
+		if (input.dpad_left == 1)
+			x -= 5;
+
 		memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
 
 		for (int row = y; row < y + height; row++)
