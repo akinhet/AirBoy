@@ -57,6 +57,16 @@
  - [ ] 24.01.2022 - 14.02.2022 - wykończeniówka i testy generalne
 
 
+## Terminarz 2
+
+•01.11.2021 - prototyp na płytce stykowej, baza biblioteki sprzętowej
+•22.11.2021 - zamawianie części, testy funkcji sieciowych
+•13.12.2021 - kończenie biblioteki sprzętowej, projekt pcb
+•03.01.2022 - projekt obudowy, pierwsze gry
+•24.01.2022 - optymalizacja kodu, reszta gier, kończenie sprzętu
+•14.02.2022 - ostatnie szlify i testy generalne
+
+
 ## Zespół
 
  - Lider Zespołu - Jakub Mierzyński:
