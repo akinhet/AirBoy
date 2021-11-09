@@ -340,14 +340,22 @@ void app_main(void)
 	while (true) {
 		input = pollInput();
 
-		if (input.dpad_up == 1)
+		if (input.dpad_up)
 			y -= 5;
-		if (input.dpad_down == 1)
+		if (input.dpad_down)
 			y += 5;
-		if (input.dpad_right == 1)
+		if (input.dpad_right)
 			x += 5;
-		if (input.dpad_left == 1)
+		if (input.dpad_left)
 			x -= 5;
+		if (input.a)
+			color = SWAP_ENDIAN_16(RGB565(0xFF,0,0));
+		if (input.b)
+			color = SWAP_ENDIAN_16(RGB565(0,0xFF,0));
+		if (input.x)
+			color = SWAP_ENDIAN_16(RGB565(0,0,0xFF));
+		if (input.y)
+			color = SWAP_ENDIAN_16(RGB565(0xFF,0xFF,0xFF));
 
 		memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
 
