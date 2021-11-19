@@ -1,11 +1,9 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_log.h>
 #include <driver/gpio.h>
-#include <driver/spi_common.h>
 #include <driver/spi_master.h>
 
 #define LCD_WIDTH 320
@@ -74,6 +72,11 @@ typedef struct{
 	uint16_t x				: 1; // 11
 	uint16_t y				: 1; //  8
 } Input;
+
+typedef struct{
+	int x;
+	int y;
+} Vec2;
 
 static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
@@ -247,73 +250,88 @@ void setupInput()
 
 Input pollInput()
 {
+	//TODO: fix timings
 	// refresh bit shifter
 	gpio_set_level(INPUT_LATCH, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(5 / portTICK_PERIOD_MS);
 	gpio_set_level(INPUT_LATCH, 1);
+	vTaskDelay(5 / portTICK_PERIOD_MS);
 
 	Input input;
 
 	// get pin states
 	input.start = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.b = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.dpad_down = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.select = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.dpad_right = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.dpad_left = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.bumper_left = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.dpad_up = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.y = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.a = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.bumper_right = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	input.x = !gpio_get_level(INPUT_IN);
 	gpio_set_level(INPUT_CLK, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	/*vTaskDelay(5 / portTICK_PERIOD_MS);*/
 	gpio_set_level(INPUT_CLK, 1);
+	vTaskDelay(3 / portTICK_PERIOD_MS);
 
 	return input;
 }
@@ -329,25 +347,28 @@ void app_main(void)
 
 	Input input;
 
+	Vec2 velocity = {5, 5};
+
 	uint16_t color = 0xFFFF;
+	uint16_t background = 0;
 
-	int x = 0;
-	int y = 0;
+	int x = 50;
+	int y = 50;
 
-	int width  = 50;
-	int height = 50;
+	int width  = 20;
+	int height = 20;
 
 	while (true) {
 		input = pollInput();
 
 		if (input.dpad_up)
-			y -= 5;
+			velocity.y -= 1;
 		if (input.dpad_down)
-			y += 5;
+			velocity.y += 1;
 		if (input.dpad_right)
-			x += 5;
+			velocity.x += 1;
 		if (input.dpad_left)
-			x -= 5;
+			velocity.x -= 1;
 		if (input.a)
 			color = SWAP_ENDIAN_16(RGB565(0xFF,0,0));
 		if (input.b)
@@ -356,8 +377,27 @@ void app_main(void)
 			color = SWAP_ENDIAN_16(RGB565(0,0,0xFF));
 		if (input.y)
 			color = SWAP_ENDIAN_16(RGB565(0xFF,0xFF,0xFF));
+		if (input.start)
+			background = SWAP_ENDIAN_16(RGB565(0,0xFF,0));
+		if (input.select)
+			background = SWAP_ENDIAN_16(RGB565(0,0,0xFF));
+		if (input.bumper_left)
+			background = SWAP_ENDIAN_16(RGB565(0xFF,0,0));
+		if (input.bumper_right)
+			background = SWAP_ENDIAN_16(RGB565(0,0,0));
 
-		memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+
+		if (x+width >= LCD_WIDTH || x <= 0)
+			velocity.x = -velocity.x;
+		if (y+height >= LCD_HEIGHT || y <= 0)
+			velocity.y = -velocity.y;
+
+		x += velocity.x;
+		y += velocity.y;
+
+		//memset(frameBuffer, background, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+		for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
+			frameBuffer[i] = background;
 
 		for (int row = y; row < y + height; row++)
 			for (int col = x; col < x + width; col++)
