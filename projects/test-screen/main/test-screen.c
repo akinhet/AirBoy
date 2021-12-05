@@ -355,8 +355,8 @@ void app_main(void)
 	int x = 50;
 	int y = 50;
 
-	int width  = 20;
-	int height = 20;
+	int width  = 30;
+	int height = 30;
 
 	while (true) {
 		input = pollInput();
