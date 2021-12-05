@@ -29,16 +29,21 @@ void app_main(void)
 	int x = 0;
 	int y = 0;
 
-	int width  = 50;
-	int height = 50;
+	int width  = 20;
+	int height = 20;
+
+	int velx = 0;
+	int vely = 0;
+
+	int gravity = 2;
 
 	while (true) {
 		input = pollInput();
 
-		if (input.dpad_up)
-			y -= 10;
-		if (input.dpad_down)
-			y += 10;
+		if (input.dpad_up && y+height+1 == LCD_HEIGHT)
+			vely -= 22;
+		//if (input.dpad_down)
+		//	vely += 10;
 		if (input.dpad_right)
 			x += 10;
 		if (input.dpad_left)
@@ -61,6 +66,11 @@ void app_main(void)
 			background = SWAP_ENDIAN_16(RGB565(0,0,0));
 
 		//memset(frameBuffer, 0, LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH);
+
+		if (y+height+1 != LCD_HEIGHT)
+			vely += gravity;
+
+		y += vely;
 
 		if (x < 0)
 			x = 0;
