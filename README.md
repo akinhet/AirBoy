@@ -45,6 +45,8 @@
 	 - tic tac toe (sieciowe)
 	 - pacman
 	 - asteroids
+	 - tetris
+	 - arcanoid
 
 
 ## Terminarz
