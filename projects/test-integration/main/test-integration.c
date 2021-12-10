@@ -21,6 +21,10 @@ void app_main(void)
 	setupDisplay();
 	setupInput();
 
+	Line test = {100, 20, 15, 12, 0xFFFF};
+
+	Rectangle rect = {100, 100, 20, 20, 0xFFFF};
+
 	Input input;
 
 	uint16_t color = 0xFFFF;
@@ -88,6 +92,9 @@ void app_main(void)
 		for (int row = y; row < y + height; row++)
 			for (int col = x; col < x + width; col++)
 				frameBuffer[LCD_WIDTH * row + col] = color;
+
+		drawLine(test, frameBuffer);
+		drawRect(rect, frameBuffer);
 
 		frameDraw(frameBuffer);
 	}

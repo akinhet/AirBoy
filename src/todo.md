@@ -2,7 +2,7 @@
 
 ## Graphics
  - [x] - Basic frame drawing
- - [ ] - Draw commands
+ - [x] - Draw commands
  - [ ] - Sprites
  - [ ] - Collision
  - [ ] - Software Scrolling
