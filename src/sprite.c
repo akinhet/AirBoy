@@ -28,7 +28,7 @@ void drawSprite(Sprite s, uint16_t *buffer)
 {
     for (int row = s.y; row < s.y + s.height; row++)
         for (int col = s.x; col < s.x + s.width; col++)
-            buffer[ 240 /* screen height */ * row + col ] = s.image[ s.height * (row - s.y) + (col - s.x) ];
+            buffer[ 320 /* screen height */ * row + col ] = s.image[ s.height * (row - s.y) + (col - s.x) ];
 }
 
 
@@ -37,6 +37,6 @@ void drawTiles(Tile *tiles, int n, uint16_t *buffer)
     for ( int i = 0; i < n; i++ )
         for (int row = tiles[i].y; row < tiles[i].y; row++)
             for (int col = tiles[i].x; col < tiles[i].x; col++)
-                buffer[ 240 /* screen height */ * row + col ] = tiles[i].parent->tilemap[ tiles[i].index ]
-                                                                                        [ tiles[i].parent->height * (row - tiles[i].y) + (col - tiles[i].x) ];
+                buffer[ 320 /* screen height */ * row + col ] = tiles[i].parent->colormap[ tiles[i].parent->tilemap[ tiles[i].index ]
+                                                                                                                   [ tiles[i].parent->height * (row - tiles[i].y) + (col - tiles[i].x) ]];
 }

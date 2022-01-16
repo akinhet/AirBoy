@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 typedef struct {
     int x, y;
@@ -10,7 +11,7 @@ typedef struct {
 typedef struct {
     int width, height;       // max width * height == 256
     uint16_t colormap[256];
-    char tilemap[256][256];
+    unsigned char tilemap[256][256];
     int collisionmask;
 } Tileset;
 
@@ -24,4 +25,4 @@ typedef struct {
 void moveSprite(Sprite s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt);
 void drawSprite(Sprite s, uint16_t *buffer);
 
-void drawTiles(Tile *tiles, uint16_t *buffer);
+void drawTiles(Tile *tiles, int n, uint16_t *buffer);
