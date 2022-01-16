@@ -210,7 +210,7 @@ void drawRect(Rectangle r, uint16_t* buffer)
 }
 
 
-void plotLineLow(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
+void _plotLineLow(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
 {
 	int dx, dy, yi, D, y;
 
@@ -237,7 +237,7 @@ void plotLineLow(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffe
 }
 
 
-void plotLineHigh(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
+void _plotLineHigh(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
 {
 	int dx, dy, xi, D, x;
 
@@ -271,14 +271,14 @@ void drawLine(Line l, uint16_t* buffer)
 
 	if (abs(l.y1 - l.y0) < abs(l.x1 - l.x0))
 		if (l.x0 > l.x1)
-			plotLineLow(l.x1, l.y1, l.x0 , l.y0, l.color, buffer);
+			_plotLineLow(l.x1, l.y1, l.x0 , l.y0, l.color, buffer);
 	    else
-			plotLineLow(l.x0, l.y0, l.x1, l.y1, l.color, buffer);
+			_plotLineLow(l.x0, l.y0, l.x1, l.y1, l.color, buffer);
 	else
 		if (l.y0 > l.y1)
-			plotLineHigh(l.x1, l.y1, l.x0, l.y0, l.color, buffer);
+			_plotLineHigh(l.x1, l.y1, l.x0, l.y0, l.color, buffer);
 	    else
-			plotLineHigh(l.x0, l.y0, l.x1, l.y1, l.color, buffer);
+			_plotLineHigh(l.x0, l.y0, l.x1, l.y1, l.color, buffer);
 }
 
 
