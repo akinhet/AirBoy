@@ -28,15 +28,43 @@ void app_main(void)
 
     uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
-    uint16_t sprite[256] = {0xFFFF};
-    Sprite player = {10, 10, 16, 16, sprite, 1};
+	uint16_t red = SWAP_ENDIAN_16(RGB565(0xFF, 0, 0));
+	uint16_t white = 0xFFFF;
+
+	/*uint16_t sprite[256] = {0xFFFF};*/
+	uint16_t sprite[256] = {white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
+							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
+							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red };
+
+    Sprite player = {152, 20, 16, 16, sprite, 1};
     bool jumping = false;
 
+	Sprite platform[3] = {
+		{140, 220, 16, 16, sprite, 1},
+		{156, 220, 16, 16, sprite, 1},
+		{172, 220, 16, 16, sprite, 1},
+	};
+
     int gravity = 2,
-        velx = 0,
-        vely = 0;
+		velx = 0,
+		vely = 0;
 
     float friction = 0.9;
+		  /*velx = 0,*/
+		  /*vely = 0;*/
 
     long long int oldTime = 0,
                   currentTime;
@@ -66,6 +94,12 @@ void app_main(void)
             velx *= friction;
             vely *= friction;
 
+            /*if ( (float) player.y + vely < 0 || (float) player.y + (float) player.height + vely > LCD_HEIGHT ) {*/
+                /*vely = 0;*/
+                /*jumping = false;*/
+            /*}*/
+            /*if ( (float) player.x + velx < 0 || (float) player.x + (float) player.width + velx > LCD_WIDTH )*/
+                /*velx = 0;*/
             if ( player.y + vely < 0 || player.y + player.height + vely > LCD_HEIGHT ) {
                 vely = 0;
                 jumping = false;
@@ -73,10 +107,14 @@ void app_main(void)
             if ( player.x + velx < 0 || player.x + player.width + velx > LCD_WIDTH )
                 velx = 0;
 
-            moveSprite(player, velx, vely, NULL, 0, NULL, 0); // TODO: Sprite not moving (because of no arrays???)
-            /* player.x += velx; */
-            /* player.y += vely; */
+            /*moveSprite(player, (int) round(velx), (int) round(vely), NULL, 0, NULL, 0); // TODO: Sprite not moving (because of no arrays???)*/
+			moveSprite(&player, velx, vely, platform, 3, NULL, 0); // TODO: Sprite not moving (because of no arrays???)
+			/*player.x += velx; */
+			/*player.y += vely; */
             drawSprite(player, frameBuffer);
+			drawSprite(platform[0], frameBuffer);
+			drawSprite(platform[1], frameBuffer);
+			drawSprite(platform[2], frameBuffer);
             frameDraw(frameBuffer);
 
             // Log frame times

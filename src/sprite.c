@@ -1,26 +1,30 @@
 #include "sprite.h"
 #include <freertos/FreeRTOS.h>
 
-void moveSprite(Sprite s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt)
+void moveSprite(Sprite *s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt)
 {
-    int mask = s.collisionmask,
-        newx = s.x + dx,
-        newy = s.y + dy;
+    int mask = s->collisionmask,
+        newx = s->x + dx,
+        newy = s->y + dy;
     for (int i = 0; i < ns; i++) {
         if ( sprites[i].collisionmask == mask )
-            if ( newx + s.width >= sprites[i].x && sprites[i].x + sprites[i].width >= newx)
-                if ( newy + s.height >= sprites[i].y && sprites[i].y + sprites[i].height >= newy ) {
-                    newx = s.x < sprites[i].x ? sprites[i].x - s.width : sprites[i].x + sprites[i].width;
-                    newy = s.y < sprites[i].y ? sprites[i].y - s.height : sprites[i].y + sprites[i].height;
-                }
-    }
-    for (int i = 0; i < nt; i++)
+            if ( newx + s->width >= sprites[i].x && sprites[i].x + sprites[i].width >= newx)
+				if ( newy + s->height >= sprites[i].y && sprites[i].y + sprites[i].height >= newy ) {
+					newy = s->y < sprites[i].y ? sprites[i].y - s->height : sprites[i].y + sprites[i].height;
+					newx = s->x < sprites[i].x ? sprites[i].x - s->width : sprites[i].x + sprites[i].width; 
+				} // TODO: rework the collisions
+	}
+    for (int i = 0; i < nt; i++) {
         if ( tiles[i].parent->collisionmask == mask )
-            if ( newx + s.width >= tiles[i].x && tiles[i].x + tiles[i].parent->width >= newx)
-                if ( newy + s.height >= tiles[i].y && tiles[i].y + tiles[i].parent->height >= newy ) {
-                    newx = s.x < tiles[i].x ? tiles[i].x - s.width : tiles[i].x + tiles[i].parent->width;
-                    newy = s.y < tiles[i].y ? tiles[i].y - s.height : tiles[i].y + tiles[i].parent->height;
-                }
+            if ( newx + s->width >= tiles[i].x && tiles[i].x + tiles[i].parent->width >= newx)
+				if ( newy + s->height >= tiles[i].y && tiles[i].y + tiles[i].parent->height >= newy ) {
+					newy = s->y < tiles[i].y ? tiles[i].y - s->height : tiles[i].y + tiles[i].parent->height;	
+					newx = s->x < tiles[i].x ? tiles[i].x - s->width : tiles[i].x + tiles[i].parent->width;
+				}
+	}
+
+	s->x = newx;
+	s->y = newy;
 }
 
 

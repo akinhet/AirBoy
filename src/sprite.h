@@ -22,7 +22,7 @@ typedef struct {
 } Tile;
 
 
-void moveSprite(Sprite s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt);
+void moveSprite(Sprite *s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt);
 void drawSprite(Sprite s, uint16_t *buffer);
 
 void drawTiles(Tile *tiles, int n, uint16_t *buffer);
