@@ -4,7 +4,7 @@
  - [x] - Basic frame drawing
  - [x] - Draw commands
  - [ ] - Tilesets
- - [ ] - Sprites
- - [ ] - Collision
+ - [x] - Sprites
+ - [x] - Collision
  - [ ] - Software Scrolling
 

@@ -6,6 +6,9 @@ typedef struct {
     int width, height;
     uint16_t *image;
     int collisionmask;
+    int isOnFloor;
+    int isOnCeiling;
+    int isOnWall;
 } Sprite;
 
 typedef struct {
@@ -23,6 +26,7 @@ typedef struct {
 
 
 void moveSprite(Sprite *s, int dx, int dy, Sprite *sprites, int ns, Tile *tiles, int nt);
+int checkCollision(Sprite *s1, Sprite *s2);
 void drawSprite(Sprite s, uint16_t *buffer);
 
 void drawTiles(Tile *tiles, int n, uint16_t *buffer);

@@ -17,6 +17,12 @@
 static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 
+int clamp(int a, int min, int max)
+{
+    return a > min ? (a < max ? a : max) : min;
+}
+
+
 void app_main(void)
 {
     // log starting message
@@ -49,22 +55,49 @@ void app_main(void)
 							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
 							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red };
 
-    Sprite player = {152, 20, 16, 16, sprite, 1};
-    bool jumping = false;
+    Sprite player = {152, 20, 16, 16, sprite, 1, 0, 0, 0};
+    bool jumping = true;
 
-	Sprite platform[3] = {
-		{140, 220, 16, 16, sprite, 1},
-		{156, 220, 16, 16, sprite, 1},
-		{172, 220, 16, 16, sprite, 1},
+	Sprite platform[] = {
+        {128, 192, 16, 16, sprite, 1, 0, 0, 0},
+		{144, 192, 16, 16, sprite, 1, 0, 0, 0},
+		{160, 192, 16, 16, sprite, 1, 0, 0, 0},
+		{176, 192, 16, 16, sprite, 1, 0, 0, 0},
+		{64,  144, 16, 16, sprite, 1, 0, 0, 0},
+		{80,  144, 16, 16, sprite, 1, 0, 0, 0},
+		{96,  144, 16, 16, sprite, 1, 0, 0, 0},
+		{112, 144, 16, 16, sprite, 1, 0, 0, 0},
+        {192,  96, 16, 16, sprite, 1, 0, 0, 0},
+		{208,  96, 16, 16, sprite, 1, 0, 0, 0},
+		{224,  96, 16, 16, sprite, 1, 0, 0, 0},
+		{240,  96, 16, 16, sprite, 1, 0, 0, 0},
+		{0,   240, 16, 16, sprite, 1, 0, 0, 0},
+		{16,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{32,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{48,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{64,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{80,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{96,  240, 16, 16, sprite, 1, 0, 0, 0},
+		{112, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{128, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{144, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{160, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{176, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{192, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{208, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{224, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{240, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{256, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{272, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{288, 240, 16, 16, sprite, 1, 0, 0, 0},
+		{304, 240, 16, 16, sprite, 1, 0, 0, 0},
 	};
 
     int gravity = 2,
 		velx = 0,
 		vely = 0;
 
-    float friction = 0.9;
-		  /*velx = 0,*/
-		  /*vely = 0;*/
+    float friction = 0.6;
 
     long long int oldTime = 0,
                   currentTime;
@@ -92,29 +125,31 @@ void app_main(void)
             // Move and draw player
             vely += gravity;
             velx *= friction;
-            vely *= friction;
 
-            /*if ( (float) player.y + vely < 0 || (float) player.y + (float) player.height + vely > LCD_HEIGHT ) {*/
-                /*vely = 0;*/
-                /*jumping = false;*/
-            /*}*/
-            /*if ( (float) player.x + velx < 0 || (float) player.x + (float) player.width + velx > LCD_WIDTH )*/
-                /*velx = 0;*/
-            if ( player.y + vely < 0 || player.y + player.height + vely > LCD_HEIGHT ) {
-                vely = 0;
+            if (player.isOnFloor) {
                 jumping = false;
+                vely = 0;
             }
-            if ( player.x + velx < 0 || player.x + player.width + velx > LCD_WIDTH )
-                velx = 0;
 
-            /*moveSprite(player, (int) round(velx), (int) round(vely), NULL, 0, NULL, 0); // TODO: Sprite not moving (because of no arrays???)*/
-			moveSprite(&player, velx, vely, platform, 3, NULL, 0); // TODO: Sprite not moving (because of no arrays???)
-			/*player.x += velx; */
-			/*player.y += vely; */
+            if (player.isOnCeiling)
+                vely = 0;
+
+			moveSprite(&player, velx, vely, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
+            /* player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); */
+            player.x = clamp(player.x, 0, LCD_WIDTH - player.width);
             drawSprite(player, frameBuffer);
 			drawSprite(platform[0], frameBuffer);
 			drawSprite(platform[1], frameBuffer);
 			drawSprite(platform[2], frameBuffer);
+			drawSprite(platform[3], frameBuffer);
+			drawSprite(platform[4], frameBuffer);
+			drawSprite(platform[5], frameBuffer);
+			drawSprite(platform[6], frameBuffer);
+			drawSprite(platform[7], frameBuffer);
+			drawSprite(platform[8], frameBuffer);
+			drawSprite(platform[9], frameBuffer);
+			drawSprite(platform[10], frameBuffer);
+			drawSprite(platform[11], frameBuffer);
             frameDraw(frameBuffer);
 
             // Log frame times
