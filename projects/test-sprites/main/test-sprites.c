@@ -36,26 +36,30 @@ void app_main(void)
 
     const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
-    /*Sprite player = {152, 20, 16, 16, sprite, 1, 0, 0, 0};*/
     Sprite player = {152, 20, 16, 16, player_sprite, 1, 0, 0, 0};
+    /* Sprite player = {152, 20, 7, 14, player_sprite, 1, 0, 0, 0}; */
     bool jumping = true;
+	int coin_count = 0;
 
-	Sprite coin = {20, 20, 8, 8, coin_sprite, 0, 0, 0, 0};
+	Sprite coins[] = {
+	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {148, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {164, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {180, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {68,  132, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {84,  132, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {100, 132, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {116, 132, 8, 8, coin_sprite, 0, 0, 0, 0},
+	    {196, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
+	    {212, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
+	    {228, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
+	    {244, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
+    };
+
+
 
 	Sprite platform[] = {
-        {128, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{144, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{160, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{176, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{64,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{80,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{96,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{112, 144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-        {192,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{208,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{224,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{240,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0}, // start invisible blocks
 		{16,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
 		{32,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
 		{48,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
@@ -74,7 +78,19 @@ void app_main(void)
 		{256, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
 		{272, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
 		{288, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{304, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{304, 240, 16, 16, bricks_sprite, 1, 0, 0, 0}, // end
+        {128, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{144, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{160, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{176, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{64,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{80,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{96,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{112, 144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+        {192,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{208,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{224,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{240,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
 	};
 
     int gravity = 2,
@@ -121,20 +137,18 @@ void app_main(void)
 			moveSprite(&player, velx, vely, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
             /* player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); */
             player.x = clamp(player.x, 0, LCD_WIDTH - player.width);
-            drawSprite(player, frameBuffer);
-			drawSprite(platform[0], frameBuffer);
-			drawSprite(platform[1], frameBuffer);
-			drawSprite(platform[2], frameBuffer);
-			drawSprite(platform[3], frameBuffer);
-			drawSprite(platform[4], frameBuffer);
-			drawSprite(platform[5], frameBuffer);
-			drawSprite(platform[6], frameBuffer);
-			drawSprite(platform[7], frameBuffer);
-			drawSprite(platform[8], frameBuffer);
-			drawSprite(platform[9], frameBuffer);
-			drawSprite(platform[10], frameBuffer);
-			drawSprite(platform[11], frameBuffer);
-			drawSprite(coin, frameBuffer);
+
+			for (int i = 0; i < ARRAY_COUNT(coins); i++)
+				checkCollision(&player, &coins[i]) ? coins[i].image = 0 : 0;
+
+			drawSprite(player, frameBuffer);
+
+			for (int i = 19; i < sizeof(platform)/sizeof(platform[0]); i++)
+				drawSprite(platform[i], frameBuffer);
+
+			for (int i = 0; i < sizeof(coins)/sizeof(coins[0]); i++)
+				drawSprite(coins[i], frameBuffer);
+
             frameDraw(frameBuffer);
 
             // Log frame times

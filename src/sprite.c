@@ -78,9 +78,14 @@ int checkCollision(Sprite *s1, Sprite *s2)
 
 void drawSprite(Sprite s, uint16_t *buffer)
 {
+    uint16_t temp;
     for (int row = s.y; row < s.y + s.height; row++)
-        for (int col = s.x; col < s.x + s.width; col++)
-            buffer[ 320 /* screen height */ * row + col ] = s.image[ s.height * (row - s.y) + (col - s.x) ];
+        for (int col = s.x; col < s.x + s.width; col++) {
+            temp = s.image[ s.height * (row - s.y) + (col - s.x) ];
+            if (temp == 0xFFFF)
+                continue;
+            buffer[ 320 /* screen height */ * row + col ] = temp;
+        }
 }
 
 
