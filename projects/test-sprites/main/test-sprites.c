@@ -12,6 +12,8 @@
 #include "lib/macros.h"
 #include "lib/sprite.h"
 
+#include "graphics.h"
+
 #define TASKNAME "main"
 
 static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
@@ -32,65 +34,47 @@ void app_main(void)
 
     Input input;
 
-    uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
+    const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
-	uint16_t red = SWAP_ENDIAN_16(RGB565(0xFF, 0, 0));
-	uint16_t white = 0xFFFF;
-
-	/*uint16_t sprite[256] = {0xFFFF};*/
-	uint16_t sprite[256] = {white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red,
-							white, red, white, white, white, red, white, white, white, red, white, white, white, red, white, white,
-							white, white, white, red, white, white, white, red, white, white, white, red, white, white, white, red };
-
-    Sprite player = {152, 20, 16, 16, sprite, 1, 0, 0, 0};
+    /*Sprite player = {152, 20, 16, 16, sprite, 1, 0, 0, 0};*/
+    Sprite player = {152, 20, 16, 16, player_sprite, 1, 0, 0, 0};
     bool jumping = true;
 
+	Sprite coin = {20, 20, 8, 8, coin_sprite, 0, 0, 0, 0};
+
 	Sprite platform[] = {
-        {128, 192, 16, 16, sprite, 1, 0, 0, 0},
-		{144, 192, 16, 16, sprite, 1, 0, 0, 0},
-		{160, 192, 16, 16, sprite, 1, 0, 0, 0},
-		{176, 192, 16, 16, sprite, 1, 0, 0, 0},
-		{64,  144, 16, 16, sprite, 1, 0, 0, 0},
-		{80,  144, 16, 16, sprite, 1, 0, 0, 0},
-		{96,  144, 16, 16, sprite, 1, 0, 0, 0},
-		{112, 144, 16, 16, sprite, 1, 0, 0, 0},
-        {192,  96, 16, 16, sprite, 1, 0, 0, 0},
-		{208,  96, 16, 16, sprite, 1, 0, 0, 0},
-		{224,  96, 16, 16, sprite, 1, 0, 0, 0},
-		{240,  96, 16, 16, sprite, 1, 0, 0, 0},
-		{0,   240, 16, 16, sprite, 1, 0, 0, 0},
-		{16,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{32,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{48,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{64,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{80,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{96,  240, 16, 16, sprite, 1, 0, 0, 0},
-		{112, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{128, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{144, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{160, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{176, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{192, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{208, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{224, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{240, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{256, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{272, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{288, 240, 16, 16, sprite, 1, 0, 0, 0},
-		{304, 240, 16, 16, sprite, 1, 0, 0, 0},
+        {128, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{144, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{160, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{176, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{64,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{80,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{96,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{112, 144, 16, 16, bricks_sprite, 1, 0, 0, 0},
+        {192,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{208,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{224,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{240,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{16,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{32,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{48,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{64,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{80,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{96,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{112, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{128, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{144, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{160, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{176, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{192, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{208, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{224, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{240, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{256, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{272, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{288, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{304, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
 	};
 
     int gravity = 2,
@@ -150,6 +134,7 @@ void app_main(void)
 			drawSprite(platform[9], frameBuffer);
 			drawSprite(platform[10], frameBuffer);
 			drawSprite(platform[11], frameBuffer);
+			drawSprite(coin, frameBuffer);
             frameDraw(frameBuffer);
 
             // Log frame times
