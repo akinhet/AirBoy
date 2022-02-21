@@ -5,6 +5,7 @@ idf_component_register(
 	"lib/display.c"
 	"lib/input.c"
 	"lib/sprite.c"
+	"lib/array.c"
                     
 	INCLUDE_DIRS 
 	".")
