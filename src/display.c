@@ -12,13 +12,21 @@
 
 #define TASKNAME "display"
 
+/*enum lcdpins{*/
+	/*LCD_PIN_MISO	= 19,*/
+	/*LCD_PIN_MOSI	= 23,*/
+	/*LCD_PIN_SCLK	= 18,*/
+	/*LCD_PIN_CS		= 15,*/
+	/*LCD_PIN_DC		=  2,*/
+	/*LCD_PIN_RESET	=  4,*/
+/*};*/
 enum lcdpins{
 	LCD_PIN_MISO	= 19,
 	LCD_PIN_MOSI	= 23,
 	LCD_PIN_SCLK	= 18,
-	LCD_PIN_CS		= 15,
-	LCD_PIN_DC		=  2,
-	LCD_PIN_RESET	=  4,
+	LCD_PIN_CS		= 27,
+	LCD_PIN_DC		=  4,
+	LCD_PIN_RESET	=  2,
 };
 
 typedef enum{
@@ -97,7 +105,7 @@ Command StartupCommands[] = {
 
 static spi_device_handle_t gSpiHandle;
 
-void sendCommand(CommandCode code)
+void IRAM_ATTR sendCommand(CommandCode code)
 {
 	spi_transaction_t transaction = {};
 
@@ -111,7 +119,7 @@ void sendCommand(CommandCode code)
 }
 
 
-void sendCommandParameters(uint8_t* data, int length)
+void IRAM_ATTR sendCommandParameters(uint8_t* data, int length)
 {
 	spi_transaction_t transaction = {};
 
@@ -125,7 +133,7 @@ void sendCommandParameters(uint8_t* data, int length)
 }
 
 
-void frameDraw(uint16_t* buffer)
+void IRAM_ATTR frameDraw(uint16_t* buffer)
 {
 	uint8_t drawWidth[] = { 0,0, UPPER_BYTE_16(LCD_WIDTH), LOWER_BYTE_16(LCD_WIDTH) };
 	sendCommand(COLUMN_ADDRESS_SET);
@@ -199,7 +207,7 @@ void setupDisplay()
 	ESP_LOGI(TASKNAME, "Initialized display");
 }
 
-void drawRect(Rectangle r, uint16_t* buffer)
+void IRAM_ATTR drawRect(Rectangle r, uint16_t* buffer)
 {
 	assert(r.x > 0 && r.x + r.width < LCD_WIDTH );
 	assert(r.y > 0 && r.y + r.height < LCD_HEIGHT );
@@ -210,7 +218,7 @@ void drawRect(Rectangle r, uint16_t* buffer)
 }
 
 
-void _plotLineLow(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
+void IRAM_ATTR _plotLineLow(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buffer)
 {
 	int dx, dy, yi, D, y;
 

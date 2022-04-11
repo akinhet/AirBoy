@@ -51,23 +51,7 @@
 
 ## Terminarz
 
- - [ ] 11.10.2021 - 01.11.2021 - prototyp płytka stykowa, baza biblioteki
- - [ ] 01.11.2021 - 22.11.2021 - 2 konsole i testy funkcji sieciowych
- - [ ] 22.11.2021 - 13.12.2021 - kończenie biblioteki, projekt pcb
- - [ ] 13.12.2021 - 03.01.2022 - zamawianie części, projekt obudowy, pierwsze gry
- - [ ] 03.01.2022 - 24.01.2022 - optymalizacja kodu i kolejne gry, kończenie sprzętu
- - [ ] 24.01.2022 - 14.02.2022 - wykończeniówka i testy generalne
-
-
-## Terminarz 2
-
-- 01.11.2021 - prototyp na płytce stykowej, baza biblioteki sprzętowej
-- 22.11.2021 - zamawianie części, testy funkcji sieciowych
-- 13.12.2021 - kończenie biblioteki sprzętowej, projekt pcb
-- 03.01.2022 - projekt obudowy, pierwsze gry
-- 24.01.2022 - optymalizacja kodu, reszta gier, kończenie sprzętu
-- 14.02.2022 - ostatnie szlify i testy generalne
-
+Time is relative
 
 ## Zespół
 

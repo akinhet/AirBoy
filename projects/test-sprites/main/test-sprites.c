@@ -11,6 +11,7 @@
 #include "lib/input.h"
 #include "lib/macros.h"
 #include "lib/sprite.h"
+#include "lib/array.h"
 
 #include "graphics.h"
 
@@ -32,7 +33,7 @@ void app_main(void)
     setupDisplay();
     setupInput();
 
-    Input input;
+    /*Input input;*/
 
     const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
@@ -41,7 +42,7 @@ void app_main(void)
     bool jumping = true;
 	int coin_count = 0;
 
-	Sprite coins[] = {
+	const Sprite coin_const[] = {
 	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
 	    {148, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
 	    {164, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
@@ -56,7 +57,10 @@ void app_main(void)
 	    {244, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
     };
 
-
+	Array coins;
+	initArray(&coins, 15);
+	for (int i = 0; i < ARRAY_COUNT(coin_const); i++)
+		insertArray(&coins, coin_const[i]);
 
 	Sprite platform[] = {
 		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0}, // start invisible blocks
@@ -104,19 +108,19 @@ void app_main(void)
 
     while (true) {
         currentTime = esp_timer_get_time();
-        if (currentTime - oldTime > 16000) {
+		/*if (currentTime - oldTime > 16000) {*/
 
-            input = pollInput();
+            /*input = pollInput();*/
 
             // Input evaluation
-            if (input.dpad_up && !jumping) {
-                jumping = true;
-                vely -= player.height + 1;
-            }
-            if (input.dpad_right)
-                velx += 5;
-            if (input.dpad_left)
-                velx -= 5;
+            /*if (input.dpad_up && !jumping) {*/
+                /*jumping = true;*/
+                /*vely -= player.height + 1;*/
+            /*}*/
+            /*if (input.dpad_right)*/
+                /*velx += 5;*/
+            /*if (input.dpad_left)*/
+                /*velx -= 5;*/
 
             // Draw background
             for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
@@ -138,23 +142,28 @@ void app_main(void)
             /* player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); */
             player.x = clamp(player.x, 0, LCD_WIDTH - player.width);
 
-			for (int i = 0; i < ARRAY_COUNT(coins); i++)
-				checkCollision(&player, &coins[i]) ? coins[i].image = 0 : 0;
+			for (int i = 0; i < coins.used; i++) {
+				if (checkCollision(&player, &coins.array[i])) {
+					removeArray(&coins, i);
+					coin_count++;
+				}
+			}
+            ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
 
 			drawSprite(player, frameBuffer);
 
-			for (int i = 19; i < sizeof(platform)/sizeof(platform[0]); i++)
+			for (int i = 19; i < ARRAY_COUNT(platform); i++)
 				drawSprite(platform[i], frameBuffer);
 
-			for (int i = 0; i < sizeof(coins)/sizeof(coins[0]); i++)
-				drawSprite(coins[i], frameBuffer);
+			for (int i = 0; i < coins.used; i++)
+				drawSprite(coins.array[i], frameBuffer);
 
             frameDraw(frameBuffer);
 
             // Log frame times
-            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (currentTime - oldTime) / 1000);
+            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
             oldTime = currentTime;
-        }
+		/*}*/
     }
 
     // Should never get here
