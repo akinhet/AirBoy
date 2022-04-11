@@ -33,7 +33,7 @@ void app_main(void)
     setupDisplay();
     setupInput();
 
-    Input input;
+    /*Input input;*/
 
     const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
@@ -108,19 +108,19 @@ void app_main(void)
 
     while (true) {
         currentTime = esp_timer_get_time();
-        if (currentTime - oldTime > 16000) {
+		/*if (currentTime - oldTime > 16000) {*/
 
-            input = pollInput();
+            /*input = pollInput();*/
 
             // Input evaluation
-            if (input.dpad_up && !jumping) {
-                jumping = true;
-                vely -= player.height + 1;
-            }
-            if (input.dpad_right)
-                velx += 5;
-            if (input.dpad_left)
-                velx -= 5;
+            /*if (input.dpad_up && !jumping) {*/
+                /*jumping = true;*/
+                /*vely -= player.height + 1;*/
+            /*}*/
+            /*if (input.dpad_right)*/
+                /*velx += 5;*/
+            /*if (input.dpad_left)*/
+                /*velx -= 5;*/
 
             // Draw background
             for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
@@ -148,6 +148,7 @@ void app_main(void)
 					coin_count++;
 				}
 			}
+            ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
 
 			drawSprite(player, frameBuffer);
 
@@ -160,9 +161,9 @@ void app_main(void)
             frameDraw(frameBuffer);
 
             // Log frame times
-            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (currentTime - oldTime) / 1000);
+            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
             oldTime = currentTime;
-        }
+		/*}*/
     }
 
     // Should never get here
