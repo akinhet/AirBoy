@@ -17,7 +17,7 @@
 
 #define TASKNAME "main"
 
-static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+static uint16_t framebuffer[LCD_WIDTH * LCD_HEIGHT];
 
 
 int clamp(int a, int min, int max)
@@ -33,7 +33,9 @@ void app_main(void)
     setupDisplay();
     setupInput();
 
-    /*Input input;*/
+	Input input;
+	input.dpad_up = 1;
+	input.dpad_left = 1;
 
     const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
 
@@ -103,28 +105,29 @@ void app_main(void)
 
     float friction = 0.6;
 
-    long long int oldTime = 0,
-                  currentTime;
+    long long int time,
+				  input_time;
 
     while (true) {
-        currentTime = esp_timer_get_time();
-		/*if (currentTime - oldTime > 16000) {*/
+        time = esp_timer_get_time();
 
-            /*input = pollInput();*/
+			input_time = esp_timer_get_time();
+			input = pollInput();
+			ESP_LOGI(TASKNAME, "Polling input took %lld ms", ( esp_timer_get_time() - input_time ) / 1000);
 
             // Input evaluation
-            /*if (input.dpad_up && !jumping) {*/
-                /*jumping = true;*/
-                /*vely -= player.height + 1;*/
-            /*}*/
-            /*if (input.dpad_right)*/
-                /*velx += 5;*/
-            /*if (input.dpad_left)*/
-                /*velx -= 5;*/
+			if (input.dpad_up && !jumping) {
+				jumping = true;
+				vely -= player.height + 1;
+			}
+			if (input.dpad_right)
+				velx += 5;
+			if (input.dpad_left)
+				velx -= 5;
 
             // Draw background
             for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
-                frameBuffer[i] = background;
+                framebuffer[i] = background;
 
             // Move and draw player
             vely += gravity;
@@ -148,22 +151,20 @@ void app_main(void)
 					coin_count++;
 				}
 			}
-            ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
+            ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - time) / 1000);
 
-			drawSprite(player, frameBuffer);
+			drawSprite(player, framebuffer);
 
 			for (int i = 19; i < ARRAY_COUNT(platform); i++)
-				drawSprite(platform[i], frameBuffer);
+				drawSprite(platform[i], framebuffer);
 
 			for (int i = 0; i < coins.used; i++)
-				drawSprite(coins.array[i], frameBuffer);
+				drawSprite(coins.array[i], framebuffer);
 
-            frameDraw(frameBuffer);
+            frameDraw(framebuffer);
 
             // Log frame times
-            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - oldTime) / 1000);
-            oldTime = currentTime;
-		/*}*/
+            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - time) / 1000);
     }
 
     // Should never get here

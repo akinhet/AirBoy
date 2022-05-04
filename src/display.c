@@ -115,7 +115,9 @@ void IRAM_ATTR sendCommand(CommandCode code)
 
 	gpio_set_level(LCD_PIN_DC, 0);
 	ESP_ERROR_CHECK(spi_device_transmit(gSpiHandle, &transaction));
+#ifdef DISPLAY_LOGGING
 	ESP_LOGI(TASKNAME, "Send command");
+#endif
 }
 
 
@@ -129,7 +131,9 @@ void IRAM_ATTR sendCommandParameters(uint8_t* data, int length)
 
 	gpio_set_level(LCD_PIN_DC, 1);
 	ESP_ERROR_CHECK(spi_device_transmit(gSpiHandle, &transaction));
+#ifdef DISPLAY_LOGGING
 	ESP_LOGI(TASKNAME, "Send parameters");
+#endif
 }
 
 
@@ -150,7 +154,9 @@ void IRAM_ATTR frameDraw(uint16_t* buffer)
 
 void setupDisplay()
 {
+#ifdef DISPLAY_LOGGING
 	ESP_LOGI(TASKNAME, "Initializing display...");
+#endif
 
 	{
 		spi_bus_config_t spiBusConfig = {};
@@ -164,7 +170,9 @@ void setupDisplay()
 
 		ESP_ERROR_CHECK(spi_bus_initialize(VSPI_HOST, &spiBusConfig, 1));
 		
+#ifdef DISPLAY_LOGGING
 		ESP_LOGI(TASKNAME, "Initialized spi bus");
+#endif
 	}
 
 	{
@@ -177,7 +185,9 @@ void setupDisplay()
 
 		ESP_ERROR_CHECK(spi_bus_add_device(VSPI_HOST, &spiDeviceConfig, &gSpiHandle));
 
+#ifdef DISPLAY_LOGGING
 		ESP_LOGI(TASKNAME, "Added screen to the spi bus");
+#endif
 	}
 
 	gpio_set_direction(LCD_PIN_DC, GPIO_MODE_OUTPUT);
@@ -204,7 +214,9 @@ void setupDisplay()
 		if (command->delay > 0)
 			vTaskDelay(command->delay / portTICK_PERIOD_MS);
 	}
+#ifdef DISPLAY_LOGGING
 	ESP_LOGI(TASKNAME, "Initialized display");
+#endif
 }
 
 void IRAM_ATTR drawRect(Rectangle r, uint16_t* buffer)

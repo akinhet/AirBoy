@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+//#define DISPLAY_LOGGING //uncomment to recive informational logs in console
+
 #define LCD_WIDTH 320
 #define LCD_HEIGHT 240
 #define LCD_DEPTH 2
