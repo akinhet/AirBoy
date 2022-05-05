@@ -31,7 +31,22 @@ void app_main(void)
 			ESP_LOGI(TAG, "Dpad left button clicked");
 		if (input.dpad_right)
 			ESP_LOGI(TAG, "Dpad right button clicked");
-
+		if (input.select)
+			ESP_LOGI(TAG, "Select button clicked");
+		if (input.start)
+			ESP_LOGI(TAG, "Start button clicked");
+		if (input.a)
+			ESP_LOGI(TAG, "A button clicked");
+		if (input.b)
+			ESP_LOGI(TAG, "B button clicked");
+		if (input.x)
+			ESP_LOGI(TAG, "X button clicked");
+		if (input.y)
+			ESP_LOGI(TAG, "Y button clicked");
+		if (input.bumper_left)
+			ESP_LOGI(TAG, "Left bumper button clicked");
+		if (input.bumper_right)
+			ESP_LOGI(TAG, "Right bumper button clicked");
 
 		vTaskDelay(500/portTICK_RATE_MS);
 	}

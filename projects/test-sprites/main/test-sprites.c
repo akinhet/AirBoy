@@ -115,8 +115,16 @@ void app_main(void)
 			input = pollInput();
 			ESP_LOGI(TASKNAME, "Polling input took %lld ms", ( esp_timer_get_time() - input_time ) / 1000);
 
+            if (player.isOnCeiling)
+                vely = 0;
+
+            if (player.isOnFloor) {
+                jumping = false;
+                vely = 0;
+            }
+
             // Input evaluation
-			if (input.dpad_up && !jumping) {
+			if (input.dpad_up && !jumping && player.isOnFloor) {
 				jumping = true;
 				vely -= player.height + 1;
 			}
@@ -133,17 +141,11 @@ void app_main(void)
             vely += gravity;
             velx *= friction;
 
-            if (player.isOnFloor) {
-                jumping = false;
-                vely = 0;
-            }
-
-            if (player.isOnCeiling)
-                vely = 0;
-
 			moveSprite(&player, velx, vely, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
-            /* player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); */
+			player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); 
             player.x = clamp(player.x, 0, LCD_WIDTH - player.width);
+
+			/*printf("floor: %d, vely: %d, y: %d, up: %d, jumping: %d\n", player.isOnFloor, vely, player.y, input.dpad_up, jumping);*/
 
 			for (int i = 0; i < coins.used; i++) {
 				if (checkCollision(&player, &coins.array[i])) {
@@ -151,7 +153,7 @@ void app_main(void)
 					coin_count++;
 				}
 			}
-            ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - time) / 1000);
+			ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - time) / 1000);
 
 			drawSprite(player, framebuffer);
 
@@ -164,7 +166,7 @@ void app_main(void)
             frameDraw(framebuffer);
 
             // Log frame times
-            ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - time) / 1000);
+			ESP_LOGI(TASKNAME, "Frame time: %lld ms", (esp_timer_get_time() - time) / 1000);
     }
 
     // Should never get here

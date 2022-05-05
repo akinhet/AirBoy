@@ -192,9 +192,9 @@ Input pollInput()
 	uint8_t pins[2];
 	esp_err_t err;
 
-	err = i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, &reg, 1, &pins, 1, 1000/portTICK_RATE_MS);
+	err = i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, &reg, 1, pins, 1, 1000/portTICK_RATE_MS);
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_GPPU ON EXPANDER 0");
+		ESP_LOGE(TAG, "FAILURE TO READ THE REG_GPPU ON EXPANDER 0");
 		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
 		return input;
 	}
@@ -202,9 +202,9 @@ Input pollInput()
 	else
 		ESP_LOGI(TAG, "SUCCESS ON READING REG_GPPU ON EXPANDER 0");
 #endif
-	i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, &reg, 1, &pins + 1, 1, 1000/portTICK_RATE_MS);
+	err = i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, &reg, 1, pins + 1, 1, 1000/portTICK_RATE_MS);
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_GPPU ON EXPANDER 1");
+		ESP_LOGE(TAG, "FAILURE TO READ THE REG_GPPU ON EXPANDER 1");
 		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
 		return input;
 	}
