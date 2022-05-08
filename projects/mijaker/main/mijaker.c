@@ -22,8 +22,8 @@
 #define screenHeight 180
 #define mapWidth 24
 #define mapHeight 24
-#define BGCOLORU 0x1C3F
-#define BGCOLORD 0x2965
+#define BGCOLORU 0x3F1C
+#define BGCOLORD 0x6529
 #define texWidth 64
 #define texHeight 64
 
@@ -296,7 +296,7 @@ void app_main(void)
 			wallX -= floor(wallX);
 
 			//x coordinate on the texture
-			int texX = (int) wallX * (float) texWidth;
+			int texX = (int) (wallX * (float) texWidth);
 			if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
 			if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
 
@@ -342,7 +342,7 @@ void app_main(void)
 				int texY = (int)texPos & (texHeight - 1);
 				texPos += stepW;
 				uint16_t color = texture[texNum][texHeight * texY + texX];
-				framebuffer[320 * y + x] = color;
+				framebuffer[320 * y + x] = SWAP_ENDIAN_16(color);
 				}else{
 				framebuffer[320 * y + x] = BGCOLORD;
 				}
