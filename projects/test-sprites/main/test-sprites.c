@@ -113,7 +113,7 @@ void app_main(void)
 
 			input_time = esp_timer_get_time();
 			input = pollInput();
-			ESP_LOGI(TASKNAME, "Polling input took %lld ms", ( esp_timer_get_time() - input_time ) / 1000);
+			ESP_LOGI(TASKNAME, "Polling input took %lld μs", ( esp_timer_get_time() - input_time ));
 
             if (player.isOnCeiling)
                 vely = 0;
@@ -128,9 +128,9 @@ void app_main(void)
 				jumping = true;
 				vely -= player.height + 1;
 			}
-			if (input.dpad_right)
+			if (input.dpad_right || input.bumper_right)
 				velx += 5;
-			if (input.dpad_left)
+			if (input.dpad_left || input.bumper_left)
 				velx -= 5;
 
             // Draw background

@@ -1,6 +1,6 @@
 #pragma once
 
-#define INPUT_CLK_SPEED 10000
+#define INPUT_CLK_SPEED 100000
 
 //#define INPUT_LOGGING //uncomment to recive informational logs in console
 
