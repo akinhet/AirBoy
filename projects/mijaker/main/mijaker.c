@@ -153,7 +153,8 @@ void app_main(void)
 				uint16_t color;
 
 				color = texture[floorTexture][texWidth * ty + tx];
-				framebuffer[320 * y + x] = SWAP_ENDIAN_16(color - 40);
+				color = (color >> 2) & 14823;
+				framebuffer[320 * y + x] = SWAP_ENDIAN_16(color);
 			}
 		}
 
@@ -248,7 +249,8 @@ void app_main(void)
 			{
 				int texY = (int)texPos & (texHeight - 1);
 				texPos += stepW;
-			uint16_t color = texture[texNum][texHeight * texY + texX];
+				uint16_t color = texture[texNum][texHeight * texY + texX];
+				if (side == 0) color = (color >> 1) & 31727;
 				framebuffer[320 * y + x] = SWAP_ENDIAN_16(color);
 			}
 			
