@@ -7,11 +7,11 @@
 #include <driver/spi_master.h>
 #include <esp_timer.h>
 
-#include "lib/display.h"
-#include "lib/input.h"
-#include "lib/macros.h"
-#include "lib/sprite.h"
-#include "lib/array.h"
+#include "display.h"
+#include "input.h"
+#include "macros.h"
+#include "sprite.h"
+#include "array.h"
 
 #include "graphics.h"
 

@@ -28,8 +28,8 @@ typedef struct {
 
 //static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT]; //Example of frame buffer declaration
 
-void IRAM_ATTR setupDisplay(void);
-void IRAM_ATTR frameDraw(uint16_t* buffer);
+void setupDisplay(void);
+void frameDraw(uint16_t* buffer);
 
-void IRAM_ATTR drawRect(Rectangle r, uint16_t* buffer);
+void drawRect(Rectangle r, uint16_t* buffer);
 void drawLine(Line l, uint16_t* buffer);

@@ -1,10 +1,11 @@
 idf_component_register(
 	SRCS 
 	"test-sprites.c"
-	"lib/display.c"
-	"lib/input.c"
-	"lib/sprite.c"
-	"lib/array.c"
+	"../../../src/display.c"
+	"../../../src/input.c"
+	"../../../src/sprite.c"
+	"../../../src/array.c"
                     
 	INCLUDE_DIRS 
+	"../../../src"
 	".")

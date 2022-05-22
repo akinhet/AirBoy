@@ -1,8 +1,10 @@
 #pragma once
-#include "sprite.h"
+#include <string.h>
+#include <stdlib.h>
+#include "display.h"
 
-const Tileset defaultFont;
+const int defaultFont[96][64];
 
-
-void defaultDrawText(int x, int y, const char *str, uint16_t *buffer);
-void drawText(Tileset font, int x, int y, const char *str, uint16_t *buffer);
+/* void defaultDrawText(int x, int y, const char *str, uint16_t *buffer); */
+/* void drawText(Tileset font, int x, int y, const char *str, uint16_t *buffer); */
+void drawText(int x, int y, int scale, uint16_t color, const char *str, uint16_t *buffer);
