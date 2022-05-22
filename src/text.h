@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "display.h"
 
-const int defaultFont[96][64];
+const int defaultFont[96][48];
 
 /* void defaultDrawText(int x, int y, const char *str, uint16_t *buffer); */
 /* void drawText(Tileset font, int x, int y, const char *str, uint16_t *buffer); */

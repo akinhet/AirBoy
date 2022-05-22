@@ -12,9 +12,10 @@ void app_main(void)
     setupDisplay();
 	for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
 		framebuffer[i] = 0x3F3F;
-	drawText(20, 20, 3, 0, "Hello World!", framebuffer);
-	drawText(20, 50, 2, 0, "Hello World!", framebuffer);
-	drawText(20, 70, 1, 0, "Hello World!", framebuffer);
+	drawText(20, 20, 4, 0, "Hello World!", framebuffer);
+	drawText(20, 60, 3, 0, "Hello World!", framebuffer);
+	drawText(20, 90, 2, 0, "Hello World!", framebuffer);
+	drawText(20, 110, 1, 0, "Hello World!", framebuffer);
 	while (1) {
 		frameDraw(framebuffer);
 		vTaskDelay(20 / portTICK_PERIOD_MS);
