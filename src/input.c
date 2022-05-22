@@ -4,19 +4,6 @@
 
 #include "input.h"
 
-#define TAG "Input"
-
-#define INPUT_I2C_ADDR_0	0x27
-#define INPUT_I2C_ADDR_1	0x26
-
-#define INPUT_I2C_PORT		0
-
-#define INPUT_REG_IODIR		0x00
-#define INPUT_REG_IPOL		0x01
-#define INPUT_REG_IOCON		0x05
-#define INPUT_REG_GPPU		0x06
-#define INPUT_REG_GPIO		0x09
-
 
 enum buttons {
 	// First expander
@@ -38,207 +25,159 @@ enum buttons {
 
 void setupInput()
 {
-	i2c_config_t conf = {
+	// i2c configuration
+	i2c_config_t conf = 
+	{
 		.mode = I2C_MODE_MASTER,
 		.sda_io_num = 32,
+		.sda_pullup_en = GPIO_PULLUP_DISABLE,
 		.scl_io_num = 33,
-		.sda_pullup_en = 0,
-		.scl_pullup_en = 0,
+		.scl_pullup_en = GPIO_PULLUP_DISABLE,
 		.master.clk_speed = INPUT_CLK_SPEED,
+		// .clk_flags = 0,
 	};
 
+	// input errors variable
 	esp_err_t err;
 
 	// installing i2c driver
 	err = i2c_param_config(INPUT_I2C_PORT, &conf);
-	if (err != ESP_OK) {
+	if (err != ESP_OK) 
+	{
 		ESP_LOGE(TAG, "I2C PARAM CONFIG FAILED");
 		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
 		return;
 	}
+
 #ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "I2C PARAM CONFIG DONE");
+	else ESP_LOGI(TAG, "I2C PARAM CONFIG DONE");
 #endif
 
 	err = i2c_driver_install(INPUT_I2C_PORT, conf.mode, 0, 0, 0);
-	if (err != ESP_OK) {
+	if (err != ESP_OK) 
+	{
 		ESP_LOGE(TAG, "I2C DRIVER INSTALL FAILED");
 		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
 		return;
 	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "I2C DRIVER INSTALL DONE");
-#endif
 
-	uint8_t writeBuffer[2];
+#ifdef INPUT_LOGGING
+	else ESP_LOGI(TAG, "I2C DRIVER INSTALL DONE");
+#endif
 
 	// setting up first expander
-	writeBuffer[0] = INPUT_REG_IOCON;
-	writeBuffer[1] = 0x20;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_ICON ON EXPANDER 0");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IOCON ON EXPANDER 0");
-#endif
-
-	writeBuffer[0] = INPUT_REG_IODIR;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_IODIR ON EXPANDER 0");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IODIR ON EXPANDER 0");
-#endif
-
-	writeBuffer[0] = INPUT_REG_IPOL;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_IPOL ON EXPANDER 0");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IPOL ON EXPANDER 0");
-#endif
-
-	writeBuffer[0] = INPUT_REG_GPPU;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_GPPU ON EXPANDER 0");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_GPPU ON EXPANDER 0");
-#endif
-
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_0, INPUT_REG_IODIR, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_0, INPUT_REG_IPOL, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_0, INPUT_REG_GPPU, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_0, INPUT_REG_IOCON, 0B00110000));
 
 	// setting up second expander
-	writeBuffer[0] = INPUT_REG_IOCON;
-	writeBuffer[1] = 0x20;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_IOCON ON EXPANDER 1");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
-	}
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_1, INPUT_REG_IODIR, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_1, INPUT_REG_IPOL, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_1, INPUT_REG_GPPU, 0xFF));
+	ESP_ERROR_CHECK(mcp23008_write_reg(INPUT_I2C_ADDR_1, INPUT_REG_IOCON, 0B00110000));
+}
+
+
+// function returns the value of the read register of the input ic
+esp_err_t mcp23008_write_reg(uint8_t ICAddress, uint8_t regAddress, uint8_t value) 
+{
+
 #ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IOCON ON EXPANDER 1");
+	ESP_LOGI(TAG, "write reg MCP port %d address %d", INPUT_I2C_PORT, regAddress);
 #endif
 
-	writeBuffer[0] = INPUT_REG_IODIR;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_IODIR ON EXPANDER 1");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+	i2c_master_start(cmd);
+	i2c_master_write_byte(cmd, (ICAddress << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+	i2c_master_write_byte(cmd, regAddress, ACK_CHECK_EN);
+	i2c_master_write_byte(cmd, value, ACK_CHECK_EN);
+	i2c_master_stop(cmd);
+
+	esp_err_t ret = i2c_master_cmd_begin(INPUT_I2C_PORT, cmd, 1000 / portTICK_RATE_MS);
+	i2c_cmd_link_delete(cmd);
+
+	if (ret != ESP_OK) 
+	{
+		ESP_LOGE(TAG, "Error writing register at address %d", regAddress);
+		return ESP_FAIL;
 	}
+
 #ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IODIR ON EXPANDER 1");
+	else ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_GPPU ON EXPANDER 1");
 #endif
 
-	writeBuffer[0] = INPUT_REG_IPOL;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_IPOL ON EXPANDER 1");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
+	return ESP_OK;
+}
+
+esp_err_t mcp23008_read_reg(uint8_t ICAddress, uint8_t regAddress, uint8_t* value)
+{
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+	i2c_master_start(cmd);
+	i2c_master_write_byte(cmd, (ICAddress << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+	i2c_master_write_byte(cmd, regAddress, ACK_CHECK_EN);
+	i2c_master_stop(cmd);
+
+	esp_err_t ret = i2c_master_cmd_begin(INPUT_I2C_PORT, cmd, 1000 / portTICK_RATE_MS);
+	i2c_cmd_link_delete(cmd);
+
+	if (ret != ESP_OK) 
+	{
+		ESP_LOGE(TAG, "Error one reading register %d", regAddress);
+		return ESP_FAIL;
 	}
+
 #ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_IPOL ON EXPANDER 1");
+	else ESP_LOGI(TAG, "SUCCESS ON READING REG_GPPU ON EXPANDER ADRESS %d", regAddress);
 #endif
 
-	writeBuffer[0] = INPUT_REG_GPPU;
-	writeBuffer[1] = 0xFF;
-	err = i2c_master_write_to_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, writeBuffer, 2, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO WRITE TO REG_GPPU ON EXPANDER 1");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return;
+	cmd = i2c_cmd_link_create();
+	i2c_master_start(cmd);
+	i2c_master_write_byte(cmd, (ICAddress << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
+	i2c_master_read_byte(cmd, value, ACK_CHECK_EN);
+	i2c_master_stop(cmd);
+
+	ret = i2c_master_cmd_begin(INPUT_I2C_PORT, cmd, 1000 / portTICK_RATE_MS);
+	i2c_cmd_link_delete(cmd);
+
+	if (ret != ESP_OK) 
+	{
+		ESP_LOGE(TAG, "Error two reading register %d", regAddress);
+		return ESP_FAIL;
 	}
+
 #ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON WRITING TO REG_GPPU ON EXPANDER 1");
+	else ESP_LOGI(TAG, "SUCCESS ON READING REG_GPPU ON EXPANDER ADRESS %d", regAddress);
 #endif
+
+	return ESP_OK;
 }
 
 Input pollInput()
 {
+	uint8_t writeBuffer[2];
 	Input input;
-
 	memset(&input, 0, sizeof(Input));
 
-	const uint8_t reg = INPUT_REG_GPIO;
-	uint8_t pins[2];
-	esp_err_t err;
+	// read first expander
+	mcp23008_read_reg(INPUT_I2C_ADDR_0, INPUT_REG_GPIO, &writeBuffer[0]);
 
-	err = i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_0, &reg, 1, pins, 1, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO READ THE REG_GPPU ON EXPANDER 0");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return input;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON READING REG_GPPU ON EXPANDER 0");
-#endif
-	err = i2c_master_write_read_device(INPUT_I2C_PORT, INPUT_I2C_ADDR_1, &reg, 1, pins + 1, 1, 1000/portTICK_RATE_MS);
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "FAILURE TO READ THE REG_GPPU ON EXPANDER 1");
-		ESP_LOGE(TAG, "RECIVED ERROR CODE: %s", esp_err_to_name(err));
-		return input;
-	}
-#ifdef INPUT_LOGGING
-	else
-		ESP_LOGI(TAG, "SUCCESS ON READING REG_GPPU ON EXPANDER 1");
-#endif
+	//read second expander
+	mcp23008_read_reg(INPUT_I2C_ADDR_1, INPUT_REG_GPIO, &writeBuffer[1]);
 
-	if (pins[0] & DPAD_UP)
-		input.dpad_up = 1;
-	if (pins[0] & DPAD_DOWN)
-		input.dpad_down = 1;
-	if (pins[0] & DPAD_LEFT)
-		input.dpad_left = 1;
-	if (pins[0] & DPAD_RIGHT)
-		input.dpad_right = 1;
-	if (pins[0] & BUMPER_LEFT)
-		input.bumper_left = 1;
-	if (pins[0] & START)
-		input.start = 1;
-	if (pins[0] & SELECT)
-		input.select = 1;
-	if (pins[0] & MENU)
-		input.menu = 1;
-	if (pins[1] & BUMPER_RIGHT)
-		input.bumper_right = 1;
-	if (pins[1] & ACTION_A)
-		input.a = 1;
-	if (pins[1] & ACTION_B)
-		input.b = 1;
-	if (pins[1] & ACTION_X)
-		input.x = 1;
-	if (pins[1] & ACTION_Y)
-		input.y = 1;
+	if (writeBuffer[0] & DPAD_UP)		input.dpad_up = 1;
+	if (writeBuffer[0] & DPAD_DOWN)		input.dpad_down = 1;
+	if (writeBuffer[0] & DPAD_LEFT)		input.dpad_left = 1;
+	if (writeBuffer[0] & DPAD_RIGHT)	input.dpad_right = 1;
+	if (writeBuffer[0] & BUMPER_LEFT)	input.bumper_left = 1;
+	if (writeBuffer[0] & START)			input.start = 1;
+	if (writeBuffer[0] & SELECT)		input.select = 1;
+	if (writeBuffer[0] & MENU)			input.menu = 1;
+	if (writeBuffer[1] & BUMPER_RIGHT)	input.bumper_right = 1;
+	if (writeBuffer[1] & ACTION_A)		input.a = 1;
+	if (writeBuffer[1] & ACTION_B)		input.b = 1;
+	if (writeBuffer[1] & ACTION_X)		input.x = 1;
+	if (writeBuffer[1] & ACTION_Y)		input.y = 1;
 	
 	return input;
 }
