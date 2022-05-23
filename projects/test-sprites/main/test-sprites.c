@@ -12,6 +12,7 @@
 #include "macros.h"
 #include "sprite.h"
 #include "array.h"
+#include "text.h"
 
 #include "graphics.h"
 
@@ -35,13 +36,15 @@ void app_main(void)
 
 	Input input;
 
-    Sprite playera = {152, 20, 16, 16, player_sprite, 1, 0, 0, 0};
-    Sprite playerb = {130, 20, 16, 16, player_sprite, 1, 0, 0, 0};
+    Sprite playera = {20, 20, 16, 16, playera_sprite, 1, 0, 0, 0};
+    Sprite playerb = {284, 20, 16, 16, playerb_sprite, 1, 0, 0, 0};
 
     bool jumpinga = true,
 		 jumpingb = true;
 	int coin_counta = 0,
 		coin_countb = 0;
+
+	char strbuffer[128] = "";
 
 	const Sprite coin_const[] = {
 	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
@@ -194,6 +197,10 @@ void app_main(void)
 			for (int i = 0; i < coins.used; i++)
 				drawSprite(coins.array[i], framebuffer);
 
+			sprintf(strbuffer, "Red:%d", coin_counta);
+			drawText(20, 10, 2, 0xFFFF, strbuffer, framebuffer);
+			sprintf(strbuffer, "Blue:%d", coin_countb);
+			drawText(230, 10, 2, 0xFFFF, strbuffer, framebuffer);
             frameDraw(framebuffer);
 
             // Log frame times
