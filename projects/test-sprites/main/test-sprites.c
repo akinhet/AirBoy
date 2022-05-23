@@ -134,8 +134,9 @@ void app_main(void)
 				velx -= 5;
 
             // Draw background
-            for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)
-                framebuffer[i] = background;
+            /*for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)*/
+                /*framebuffer[i] = background;*/
+			memcpy(framebuffer, background_texture, sizeof(background_texture));
 
             // Move and draw player
             vely += gravity;
