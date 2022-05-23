@@ -180,7 +180,7 @@ Input pollInput()
 	if (writeBuffer[0] & DPAD_LEFT)     input.dpad_left = 1;
 	if (writeBuffer[0] & DPAD_RIGHT)    input.dpad_right = 1;
 	if (writeBuffer[0] & BUMPER_LEFT)   input.bumper_left = 1;
-	if (writeBuffer[0] & START)	        input.start = 1;
+	if (writeBuffer[0] & START)         input.start = 1;
 	if (writeBuffer[0] & SELECT)        input.select = 1;
 	if (writeBuffer[0] & MENU)          input.menu = 1;
 	if (writeBuffer[1] & BUMPER_RIGHT)  input.bumper_right = 1;
