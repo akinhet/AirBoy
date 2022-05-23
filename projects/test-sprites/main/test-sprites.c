@@ -34,15 +34,14 @@ void app_main(void)
     setupInput();
 
 	Input input;
-	input.dpad_up = 1;
-	input.dpad_left = 1;
 
-    const uint16_t background = SWAP_ENDIAN_16(RGB565(0x4C, 0x7F, 0xFF));
+    Sprite playera = {152, 20, 16, 16, player_sprite, 1, 0, 0, 0};
+    Sprite playerb = {130, 20, 16, 16, player_sprite, 1, 0, 0, 0};
 
-    Sprite player = {152, 20, 16, 16, player_sprite, 1, 0, 0, 0};
-    /* Sprite player = {152, 20, 7, 14, player_sprite, 1, 0, 0, 0}; */
-    bool jumping = true;
-	int coin_count = 0;
+    bool jumpinga = true,
+		 jumpingb = true;
+	int coin_counta = 0,
+		coin_countb = 0;
 
 	const Sprite coin_const[] = {
 	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
@@ -100,8 +99,10 @@ void app_main(void)
 	};
 
     int gravity = 2,
-		velx = 0,
-		vely = 0;
+		velxa = 0,
+		velya = 0,
+		velxb = 0,
+		velyb = 0;
 
     float friction = 0.6;
 
@@ -115,23 +116,40 @@ void app_main(void)
 			input = pollInput();
 			ESP_LOGI(TASKNAME, "Polling input took %lld μs", ( esp_timer_get_time() - input_time ));
 
-            if (player.isOnCeiling)
-                vely = 0;
+            if (playera.isOnCeiling)
+                velya = 0;
+            if (playera.isOnFloor) {
+                jumpinga = false;
+                velya = 0;
+            }
 
-            if (player.isOnFloor) {
-                jumping = false;
-                vely = 0;
+            if (playerb.isOnCeiling)
+                velyb = 0;
+            if (playerb.isOnFloor) {
+                jumpingb = false;
+                velyb = 0;
             }
 
             // Input evaluation
-			if (input.dpad_up && !jumping && player.isOnFloor) {
-				jumping = true;
-				vely -= player.height + 1;
+			if (input.start)
+				esp_restart();
+			if (input.dpad_up && !jumpinga && playera.isOnFloor) {
+				jumpinga = true;
+				velya -= playera.height + 1;
 			}
-			if (input.dpad_right || input.bumper_right)
-				velx += 5;
-			if (input.dpad_left || input.bumper_left)
-				velx -= 5;
+			if (input.dpad_right)
+				velxa += 5;
+			if (input.dpad_left)
+				velxa -= 5;
+
+			if (input.y && !jumpingb && playerb.isOnFloor) {
+				jumpingb = true;
+				velyb -= playerb.height + 1;
+			}
+			if (input.a)
+				velxb += 5;
+			if (input.x)
+				velxb -= 5;
 
             // Draw background
             /*for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)*/
@@ -139,24 +157,36 @@ void app_main(void)
 			memcpy(framebuffer, background_texture, sizeof(background_texture));
 
             // Move and draw player
-            vely += gravity;
-            velx *= friction;
+            velya += gravity;
+            velxa *= friction;
+            velyb += gravity;
+            velxb *= friction;
 
-			moveSprite(&player, velx, vely, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
-			player.y = clamp(player.y, 0, LCD_HEIGHT - player.height); 
-            player.x = clamp(player.x, 0, LCD_WIDTH - player.width);
+			moveSprite(&playera, velxa, velya, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
+			playera.y = clamp(playera.y, 0, LCD_HEIGHT - playera.height); 
+            playera.x = clamp(playera.x, 0, LCD_WIDTH - playera.width);
+			moveSprite(&playerb, velxb, velyb, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
+			playerb.y = clamp(playerb.y, 0, LCD_HEIGHT - playerb.height); 
+            playerb.x = clamp(playerb.x, 0, LCD_WIDTH - playerb.width);
 
 			/*printf("floor: %d, vely: %d, y: %d, up: %d, jumping: %d\n", player.isOnFloor, vely, player.y, input.dpad_up, jumping);*/
 
 			for (int i = 0; i < coins.used; i++) {
-				if (checkCollision(&player, &coins.array[i])) {
+				if (checkCollision(&playera, &coins.array[i])) {
 					removeArray(&coins, i);
-					coin_count++;
+					coin_counta++;
+				}
+			}
+			for (int i = 0; i < coins.used; i++) {
+				if (checkCollision(&playerb, &coins.array[i])) {
+					removeArray(&coins, i);
+					coin_countb++;
 				}
 			}
 			ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - time) / 1000);
 
-			drawSprite(player, framebuffer);
+			drawSprite(playera, framebuffer);
+			drawSprite(playerb, framebuffer);
 
 			for (int i = 19; i < ARRAY_COUNT(platform); i++)
 				drawSprite(platform[i], framebuffer);
