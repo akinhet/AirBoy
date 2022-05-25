@@ -20,6 +20,11 @@
 
 static uint16_t framebuffer[LCD_WIDTH * LCD_HEIGHT];
 
+enum gamestate{
+    PLAYING,
+	WINSCREEN,
+} state = PLAYING;
+
 
 int clamp(int a, int min, int max)
 {
@@ -119,59 +124,59 @@ void app_main(void)
 			input = pollInput();
 			ESP_LOGI(TASKNAME, "Polling input took %lld μs", ( esp_timer_get_time() - input_time ));
 
-            if (playera.isOnCeiling)
-                velya = 0;
-            if (playera.isOnFloor) {
-                jumpinga = false;
-                velya = 0;
-            }
+			if (state == PLAYING) {
+				if (playera.isOnCeiling)
+					velya = 0;
+				if (playera.isOnFloor) {
+					jumpinga = false;
+					velya = 0;
+				}
 
-            if (playerb.isOnCeiling)
-                velyb = 0;
-            if (playerb.isOnFloor) {
-                jumpingb = false;
-                velyb = 0;
-            }
+				if (playerb.isOnCeiling)
+					velyb = 0;
+				if (playerb.isOnFloor) {
+					jumpingb = false;
+					velyb = 0;
+				}
 
-            // Input evaluation
-			if (input.start)
-				esp_restart();
-			if (input.dpad_up && !jumpinga && playera.isOnFloor) {
-				jumpinga = true;
-				velya -= playera.height + 1;
+				// Input evaluation
+				if (input.start)
+					esp_restart();
+				if (input.dpad_up && !jumpinga && playera.isOnFloor) {
+					jumpinga = true;
+					velya -= playera.height + 1;
+				}
+				if (input.dpad_right)
+					velxa += 5;
+				if (input.dpad_left)
+					velxa -= 5;
+
+				if (input.y && !jumpingb && playerb.isOnFloor) {
+					jumpingb = true;
+					velyb -= playerb.height + 1;
+				}
+				if (input.a)
+					velxb += 5;
+				if (input.x)
+					velxb -= 5;
+
+				// Move and draw player
+				velya += gravity;
+				velxa *= friction;
+				velyb += gravity;
+				velxb *= friction;
+
+				moveSprite(&playera, velxa, velya, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
+				playera.y = clamp(playera.y, 0, LCD_HEIGHT - playera.height);
+				playera.x = clamp(playera.x, 0, LCD_WIDTH - playera.width);
+				moveSprite(&playerb, velxb, velyb, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
+				playerb.y = clamp(playerb.y, 0, LCD_HEIGHT - playerb.height);
+				playerb.x = clamp(playerb.x, 0, LCD_WIDTH - playerb.width);
+			} else {
+				if (input.start)
+					/* state = PLAYING; */
+					esp_restart();
 			}
-			if (input.dpad_right)
-				velxa += 5;
-			if (input.dpad_left)
-				velxa -= 5;
-
-			if (input.y && !jumpingb && playerb.isOnFloor) {
-				jumpingb = true;
-				velyb -= playerb.height + 1;
-			}
-			if (input.a)
-				velxb += 5;
-			if (input.x)
-				velxb -= 5;
-
-            // Draw background
-            /*for (int i = 0; i < LCD_WIDTH * LCD_HEIGHT; i++)*/
-                /*framebuffer[i] = background;*/
-			memcpy(framebuffer, background_texture, sizeof(background_texture));
-
-            // Move and draw player
-            velya += gravity;
-            velxa *= friction;
-            velyb += gravity;
-            velxb *= friction;
-
-			moveSprite(&playera, velxa, velya, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
-			playera.y = clamp(playera.y, 0, LCD_HEIGHT - playera.height); 
-            playera.x = clamp(playera.x, 0, LCD_WIDTH - playera.width);
-			moveSprite(&playerb, velxb, velyb, platform, sizeof(platform)/sizeof(platform[0]), NULL, 0);
-			playerb.y = clamp(playerb.y, 0, LCD_HEIGHT - playerb.height); 
-            playerb.x = clamp(playerb.x, 0, LCD_WIDTH - playerb.width);
-
 			/*printf("floor: %d, vely: %d, y: %d, up: %d, jumping: %d\n", player.isOnFloor, vely, player.y, input.dpad_up, jumping);*/
 
 			for (int i = 0; i < coins.used; i++) {
@@ -186,7 +191,12 @@ void app_main(void)
 					coin_countb++;
 				}
 			}
+			if (coins.used == 0)
+				state = WINSCREEN;
 			ESP_LOGI(TASKNAME, "Calculation time: %lld ms", (esp_timer_get_time() - time) / 1000);
+
+			//Draw background
+			memcpy(framebuffer, background_texture, sizeof(background_texture));
 
 			drawSprite(playera, framebuffer);
 			drawSprite(playerb, framebuffer);
@@ -201,6 +211,15 @@ void app_main(void)
 			drawText(20, 10, 2, 0xFFFF, strbuffer, framebuffer);
 			sprintf(strbuffer, "Blue:%d", coin_countb);
 			drawText(230, 10, 2, 0xFFFF, strbuffer, framebuffer);
+			if (state == WINSCREEN) {
+				if (coin_counta > coin_countb)
+					drawText(50, 80, 4, 0x00F8, "Red won!", framebuffer);
+				else if (coin_counta < coin_countb)
+					drawText(50, 80, 4, 0x1F00, "Blue won!", framebuffer);
+				else
+					drawText(50, 80, 4, 0xFFFF, "Draw!", framebuffer);
+				drawText(50, 150, 2, 0xFFFF, "Press start...", framebuffer);
+			}
             frameDraw(framebuffer);
 
             // Log frame times
