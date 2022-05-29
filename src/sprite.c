@@ -79,12 +79,54 @@ int checkCollision(Sprite *s1, Sprite *s2)
 void drawSprite(Sprite s, uint16_t *buffer)
 {
     uint16_t temp;
+    uint8_t mask = (s.vFlip << 1) + s.hFlip;
+
     for (int row = s.y; row < s.y + s.height; row++)
-        for (int col = s.x; col < s.x + s.width; col++) {
-            temp = s.image[ s.height * (row - s.y) + (col - s.x) ];
-            if (temp == 0xFFFF)
-                continue;
-            buffer[ 320 /* screen height */ * row + col ] = temp;
+        switch (mask)
+        {
+        case 0:
+            for (int col = s.x; col < s.x + s.width; col++)
+            {
+                temp = s.image[s.height * (row - s.y) + (col - s.x)];
+                if (temp == 0xFFFF)
+                    continue;
+
+                buffer[320 /* screen height */ * row + col] = temp;
+            }
+            break;
+
+        case 1:
+            for (int col = s.x; col < s.x + s.width; col++)
+            {
+                temp = s.image[s.height * (s.height - (row - s.y)) + (col - s.x)];
+                if (temp == 0xFFFF)
+                    continue;
+
+                buffer[320 /* screen height */ * row + col] = temp;
+            }
+            break;
+
+        case 2:
+            for (int col = s.x; col < s.x + s.width; col++)
+            {
+                temp = s.image[s.height * (row - s.y) + (s.width - (col - s.x))];
+                if (temp == 0xFFFF)
+                    continue;
+
+                buffer[320 /* screen height */ * row + col] = temp;
+            }
+            break;
+
+        case 3:
+            for (int col = s.x; col < s.x + s.width; col++)
+            {
+                temp = s.image[s.height * (s.height - (row - s.y)) + (s.width - (col - s.x))];
+                if (temp == 0xFFFF)
+                    continue;
+
+                buffer[320 /* screen height */ * row + col] = temp;
+            }
+            break;
         }
 }
 

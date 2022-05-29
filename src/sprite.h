@@ -9,6 +9,8 @@ typedef struct {
     int isOnFloor;
     int isOnCeiling;
     int isOnWall;
+    uint8_t vFlip;
+    uint8_t hFlip;
 } Sprite;
 
 typedef struct {

@@ -41,8 +41,8 @@ void app_main(void)
 
 	Input input;
 
-    Sprite playera = {20, 20, 16, 16, playera_sprite, 1, 0, 0, 0};
-    Sprite playerb = {284, 20, 16, 16, playerb_sprite, 1, 0, 0, 0};
+    Sprite playera = {20, 20, 16, 16, playera_sprite, 1, 0, 0, 0, 0, 0};
+    Sprite playerb = {284, 20, 16, 16, playerb_sprite, 1, 0, 0, 0, 0, 1};
 
     bool jumpinga = true,
 		 jumpingb = true;
@@ -52,18 +52,18 @@ void app_main(void)
 	char strbuffer[128] = "";
 
 	const Sprite coin_const[] = {
-	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {148, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {164, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {180, 180, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {68,  132, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {84,  132, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {100, 132, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {116, 132, 8, 8, coin_sprite, 0, 0, 0, 0},
-	    {196, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
-	    {212, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
-	    {228, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
-	    {244, 84,  8, 8, coin_sprite, 0, 0, 0, 0},
+	    {132, 180, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {148, 180, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {164, 180, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {180, 180, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {68,  132, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {84,  132, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {100, 132, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {116, 132, 8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {196, 84,  8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {212, 84,  8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {228, 84,  8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
+	    {244, 84,  8, 8, coin_sprite, 0, 0, 0, 0, 0, 0},
     };
 
 	Array coins;
@@ -72,38 +72,38 @@ void app_main(void)
 		insertArray(&coins, coin_const[i]);
 
 	Sprite platform[] = {
-		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0}, // start invisible blocks
-		{16,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{32,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{48,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{64,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{80,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{96,  240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{112, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{128, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{144, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{160, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{176, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{192, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{208, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{224, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{240, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{256, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{272, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{288, 240, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{304, 240, 16, 16, bricks_sprite, 1, 0, 0, 0}, // end
-        {128, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{144, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{160, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{176, 192, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{64,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{80,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{96,  144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{112, 144, 16, 16, bricks_sprite, 1, 0, 0, 0},
-        {192,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{208,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{224,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
-		{240,  96, 16, 16, bricks_sprite, 1, 0, 0, 0},
+		{0,   240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0}, // start invisible blocks
+		{16,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{32,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{48,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{64,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{80,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{96,  240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{112, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{128, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{144, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{160, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{176, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{192, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{208, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{224, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{240, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{256, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{272, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{288, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{304, 240, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0}, // end
+        {128, 192, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{144, 192, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{160, 192, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{176, 192, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{64,  144, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{80,  144, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{96,  144, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{112, 144, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+        {192,  96, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{208,  96, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{224,  96, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
+		{240,  96, 16, 16, bricks_sprite, 1, 0, 0, 0, 0, 0},
 	};
 
     int gravity = 2,
@@ -147,18 +147,30 @@ void app_main(void)
 					velya -= playera.height + 1;
 				}
 				if (input.dpad_right)
+				{
 					velxa += 5;
+					playera.vFlip = 0;
+				}
 				if (input.dpad_left)
+				{
 					velxa -= 5;
-
+					playera.vFlip = 1;
+				}
 				if (input.y && !jumpingb && playerb.isOnFloor) {
 					jumpingb = true;
 					velyb -= playerb.height + 1;
 				}
 				if (input.a)
+				{
+					playerb.vFlip = 0;
 					velxb += 5;
+				}
 				if (input.x)
+				{
+					playerb.vFlip = 1;
 					velxb -= 5;
+				}
+					
 
 				// Move and draw player
 				velya += gravity;
