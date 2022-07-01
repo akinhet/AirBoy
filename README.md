@@ -1,5 +1,12 @@
 # AirBoy
 
+![zdjecie konsoli](img/DSC_1208.JPG)
+
+![screenshot platformówki](img/snap.png)
+
+![screenshot gry 3D](img/snap1.png)
+
+[Dokumentacja i schematy](https://github.com/kuba8888/documentation-AirBoy/blob/main/dokumentacja.pdf)
 
 ## Tematyka
 
