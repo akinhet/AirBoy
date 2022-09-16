@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "display.h": "c",
+        "esp_lcd_ili9341.h": "c",
+        "graphic.h": "c",
+        "airboy_display.h": "c"
+    }
+}
