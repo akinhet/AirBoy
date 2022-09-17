@@ -44,6 +44,12 @@ enum {
 	MENU,
 } state = MENU;
 
+enum {
+	EASY = 400000,
+	MEDIUM = 200000,
+	HARD = 100000,
+} difficulty = EASY;
+
 
 int clamp(int a, int min, int max)
 {
@@ -53,11 +59,12 @@ int clamp(int a, int min, int max)
 
 void app_main(void)
 {
-    setupDisplay();
-    setupInput();
+	setupDisplay();
+	setupInput();
 
 	Input input;
-	bool heldstart = false;
+	bool heldstart = false,
+		heldselect = false;
 	Array player;
 	initArray(&player, 10);
 	insertArray(&player, body_segment);
@@ -93,7 +100,21 @@ void app_main(void)
 		} else
 			heldstart = false;
 
-		if (esp_timer_get_time() - time > 200000 && state == PLAY) {
+		if (input.select && state == MENU) {
+			if (!heldselect) {
+				if (difficulty == EASY)
+					difficulty = MEDIUM;
+				else if (difficulty == MEDIUM)
+					difficulty = HARD;
+				else if (difficulty == HARD)
+					difficulty = EASY;
+			}
+			heldselect = true;
+		} else
+			heldselect = false;
+
+
+		if (esp_timer_get_time() - time > difficulty && state == PLAY) {
 			time = esp_timer_get_time();
 
 			for (int i = player.used - 1; i > 0; i--) {
@@ -191,8 +212,17 @@ void app_main(void)
 			drawText(50, 80, 4, 0xFBDE, "Paused", framebuffer);
 			drawText(50, 112, 1, 0xFBDE, "Press start to unpause", framebuffer);
 		} else if (state == MENU) {
+			memset(framebuffer, 0, sizeof(framebuffer));
 			drawText(50, 80, 4, 0xFBDE, "Snake", framebuffer);
-			drawText(50, 112, 2, 0xFBDE, "Press start", framebuffer);
+			drawText(68, 128, 2, 0xFBDE, "Easy", framebuffer);
+			drawText(68, 152, 2, 0xFBDE, "Medium", framebuffer);
+			drawText(68, 176, 2, 0xFBDE, "Hard", framebuffer);
+			if (difficulty == EASY)
+				drawText(50, 128, 2, 0xFBDE, ">", framebuffer);
+			else if (difficulty == MEDIUM)
+				drawText(50, 152, 2, 0xFBDE, ">", framebuffer);
+			else if (difficulty == HARD)
+				drawText(50, 176, 2, 0xFBDE, ">", framebuffer);
 		}
 
 		frameDraw(framebuffer);
