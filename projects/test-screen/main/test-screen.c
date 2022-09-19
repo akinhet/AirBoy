@@ -7,14 +7,41 @@
 #include "esp_log.h"
 
 #include "airboy_display.h"
+#include "airboy_display_primitives.h"
 
 #define TASKNAME "main"
 
-#define LCD_WIDTH 320
-#define LCD_HEIGHT 240
-#define LCD_DEPTH 2
-
 void app_main(void)
 {
-	init_display(LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH, MALLOC_CAP_DMA, 1);
+	frame_buffer_config_t config = {
+		.width = 320,
+		.height = 240,
+		.alloc_flags = MALLOC_CAP_DMA,
+		.buffer_count = 1
+	};
+
+	init_display(&config);
+	clear_buffer(0x4567);
+
+	Line line = {
+		.x0 = 20,
+		.y0 = 20,
+		.x1 = 50,
+		.y1 = 70,
+		.color = 0xC0FE
+	};
+
+	Rectangle rect = {
+		.x = 0,
+		.y = 0,
+		.width = 20,
+		.height = 20,
+		.color = 0xC0FE
+	};
+
+	draw_line(line);
+	draw_rect(rect);
+
+	draw_frame();
+	draw_line(line);
 }

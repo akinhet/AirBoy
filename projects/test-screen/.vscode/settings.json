@@ -2,12 +2,13 @@
     "idf.adapterTargetName": "esp32s3",
     "files.associations": {
         "regex": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "*.inc": "c"
     },
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
         "interface/ftdi/esp32_devkitj_v1.cfg",
         "target/esp32s3.cfg"
     ],
-    "idf.portWin": "COM13"
+    "idf.portWin": "COM12"
 }

@@ -2,13 +2,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "airboy_display_framebuffer.h"
 
-#define DISPLAY_BUS_TYPE 0
+#define DISPLAY_BUS_TYPE 1
 #define LCD_PIXEL_CLOCK_HZ  (60 * 1000 * 1000)
-#define LCD_WIDTH 320
-#define LCD_HEIGHT 240
-#define LCD_DEPTH 2
-#define LCD_BUFF_SIZE LCD_WIDTH * LCD_HEIGHT * LCD_DEPTH
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +18,23 @@ extern "C" {
  * @param[in] buffer_alloc  buffer alloc flags (MALLOC_CAP_DMA)
  * @param[in] buffer_count  number of buffers (not working at the moment)    
  */
-void init_display(size_t buffer_lenght, uint32_t buffer_alloc, uint8_t buffer_count);
+void init_display(frame_buffer_config_t *config);
+
+/**
+ * @brief Draw frame buffer to lcd   
+ */
+void draw_frame();
+
+/**
+ * @brief Set pixel on frame buffer
+ * 
+ * @param[in] x      x pixel coordinate
+ * @param[in] y      y pixel coordinate
+ * @param[in] color  pixel color
+ */
+void set_pixel_absolute(uint16_t x, uint16_t y, uint16_t color);
+
+void clear_buffer(uint16_t color);
 
 #ifdef __cplusplus
 }

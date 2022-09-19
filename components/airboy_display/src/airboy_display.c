@@ -10,10 +10,11 @@
 #include "esp_log.h"
 #include "esp_check.h"
 #include "ili9341.h"
-#include "primitives.h"
 #include "airboy_display.h"
+#include "airboy_display_framebuffer.h"
 
-uint16_t* frame_buffer;
+frame_buffer_t frame_buffer;
+static esp_lcd_panel_handle_t panel_handle = NULL;
 
 #define TASKNAME "display_init"
 #define LCD_HOST SPI2_HOST
@@ -50,7 +51,7 @@ static void init_spi_bus(esp_lcd_panel_io_handle_t *io_handle)
         .data5_io_num = LCD_PIN_DATA_5,
         .data6_io_num = LCD_PIN_DATA_6,
         .data7_io_num = LCD_PIN_DATA_7,
-		.max_transfer_sz = LCD_BUFF_SIZE * sizeof(uint16_t),
+		.max_transfer_sz = frame_buffer.height * frame_buffer.width * sizeof(uint16_t),
         .flags = SPICOMMON_BUSFLAG_OCTAL
     };
 
@@ -82,7 +83,7 @@ static void init_i80_bus(esp_lcd_panel_io_handle_t *io_handle)
             -1, -1, -1, -1, -1, -1, -1, -1
         },
         .bus_width = 8,
-        .max_transfer_bytes = LCD_BUFF_SIZE * sizeof(uint16_t),
+        .max_transfer_bytes = frame_buffer.height * frame_buffer.width * sizeof(uint16_t),
     };
 
     ESP_ERROR_CHECK(esp_lcd_new_i80_bus(&bus_config, &i80_bus));
@@ -103,30 +104,58 @@ static void init_i80_bus(esp_lcd_panel_io_handle_t *io_handle)
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i80(i80_bus, &io_config, io_handle));
 }
 
-void init_display(size_t buffer_lenght, uint32_t buffer_alloc, uint8_t buffer_count)
+void init_display(frame_buffer_config_t *buffer_config)
 {
+    //first initialize framebuffer
+    ESP_ERROR_CHECK(init_frame_buffer(buffer_config, &frame_buffer));
 	esp_lcd_panel_io_handle_t io_handle = NULL;
 
 	// initialize selected lcd bus type
 	#if DISPLAY_BUS_TYPE 
-	init_spi_bus(&io_handle);
+	    init_spi_bus(&io_handle);
 	#else
-	init_i80_bus(&io_handle);
+	    init_i80_bus(&io_handle);
 	#endif
 
-	esp_lcd_panel_handle_t panel_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = LCD_PIN_RESET,
         .color_space    = ESP_LCD_COLOR_SPACE_BGR,
-        .bits_per_pixel = LCD_DEPTH * 8,
+        .bits_per_pixel = sizeof(uint16_t) * 8,
     };
 
 	ESP_ERROR_CHECK(esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
 	ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
+}
 
-	frame_buffer = heap_caps_malloc(buffer_lenght, buffer_alloc);
+void draw_frame()
+{
+    #if DISPLAY_BUS_TYPE 
+        // due to esp32 s3 spi bus buffer size the screen painting has to be split into smaller fragments (less than 32kb)
+        for (uint8_t y = 0; y < frame_buffer.height; y += 48)
+            esp_lcd_panel_draw_bitmap(panel_handle, 0, y, frame_buffer.width, y + 48, &(frame_buffer.buffer[frame_buffer.current_buffer][y * frame_buffer.width]));
+            
+	#else
+	    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, frame_buffer.width, frame_buffer.height, &(frame_buffer->buffer[frame_buffer.current_buffer]));
+	#endif
 
-    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, 320, 240, frame_buffer);
+    if (frame_buffer.buffer_count > 1)
+    {
+        if (frame_buffer.current_buffer == (frame_buffer.buffer_count - 1)) frame_buffer.current_buffer = 0;
+        else frame_buffer.current_buffer++;
+    }
+}
+
+void clear_buffer(uint16_t color)
+{
+    memset(frame_buffer.buffer[frame_buffer.current_buffer], color, frame_buffer.height * frame_buffer.width * sizeof(uint16_t));
+}
+
+void set_pixel_absolute(uint16_t x, uint16_t y, uint16_t color)
+{
+    if (y > frame_buffer.height) return;
+    if (x > frame_buffer.width) return;
+
+    frame_buffer.buffer[frame_buffer.current_buffer][frame_buffer.width * y + x] = color;
 }

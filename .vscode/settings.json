@@ -3,6 +3,8 @@
         "display.h": "c",
         "esp_lcd_ili9341.h": "c",
         "graphic.h": "c",
-        "airboy_display.h": "c"
+        "airboy_display.h": "c",
+        "airboy_display_primitives.h": "c",
+        "airboy_display_framebuffer.h": "c"
     }
 }
