@@ -1,8 +1,8 @@
 #include "assert.h"
-#include "airboy_display_primitives.h"
+#include "airboy_shapes.h"
 #include "airboy_display.h"
 
-static void plot_line_low(int x0, int y0, int x1, int y1, uint16_t color)
+/*static void plot_line_low(int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int dx, dy, yi, D, y;
 
@@ -27,7 +27,6 @@ static void plot_line_low(int x0, int y0, int x1, int y1, uint16_t color)
 		}
 	}
 }
-
 
 static void plot_line_high(int x0, int y0, int x1, int y1, uint16_t color)
 {
@@ -67,11 +66,55 @@ void draw_line(Line l)
 			plot_line_high(l.x1, l.y1, l.x0, l.y0, l.color);
 	    else
 			plot_line_high(l.x0, l.y0, l.x1, l.y1, l.color);
-}
+}*/
 
-void draw_rect(Rectangle r)
+/*static void draw_circle_section(int x, int y, int x0, int y0, uint16_t color)
+{
+    set_pixel_absolute(x0 + x, y0 - y, color);
+    set_pixel_absolute(x0 + y, y0 - x, color);
+    set_pixel_absolute(x0 - x, y0 - y, color);
+    set_pixel_absolute(x0 - y, y0 - x, color);
+    set_pixel_absolute(x0 + x, y0 + y, color);
+    set_pixel_absolute(x0 + y, y0 + x, color);
+    set_pixel_absolute(x0 - x, y0 + y, color);
+    set_pixel_absolute(x0 - y, y0 + x, color);
+}*/
+
+void draw_rect(Rectangle r, viewport_t* viewport)
 {
 	for (int row = r.y; row < r.y + r.height; row++)
 		for (int col = r.x; col < r.x + r.width; col++)
-			set_pixel_absolute(col, row, r.color);
+			set_pixel_location(col, row, r.color, viewport);
 }
+
+/*void draw_circle(circle c)
+{
+  int f, ddF_x, ddF_y;
+  int x, y;
+
+  f = 1;
+  f -= c.rad;
+  ddF_x = 1;
+  ddF_y = 0;
+  ddF_y -= c.rad;
+  ddF_y *= 2;
+  x = 0;
+  y = c.rad;
+
+  draw_circle_section(x, y, c.x, c.y, c.color);
+  
+  while ( x < y )
+  {
+    if (f >= 0) 
+    {
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+
+    draw_circle_section(x, y, c.x, c.y, c.color);    
+  }
+}*/

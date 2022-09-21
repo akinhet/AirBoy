@@ -3,20 +3,21 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "airboy_display_framebuffer.h"
+#include "airboy_viewport.h"
 
 #define DISPLAY_BUS_TYPE 1
-#define LCD_PIXEL_CLOCK_HZ  (60 * 1000 * 1000)
+#define LCD_PIXEL_CLOCK_HZ  (40 * 1000 * 1000)
+
+#define SWAP_BYTES(value) ( (((value) & 0xFFu) << 8u) | ((value) >> 8u) )
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Create LCD panel for model ILI9341
+ * @brief Create LCD panel for lcd ILI9341
  *
- * @param[in] buffer_lenght buffer lenght in bytes 
- * @param[in] buffer_alloc  buffer alloc flags (MALLOC_CAP_DMA)
- * @param[in] buffer_count  number of buffers (not working at the moment)    
+ * @param[in] config pointer to frame buffer config structure
  */
 void init_display(frame_buffer_config_t *config);
 
@@ -32,9 +33,16 @@ void draw_frame();
  * @param[in] y      y pixel coordinate
  * @param[in] color  pixel color
  */
-void set_pixel_absolute(uint16_t x, uint16_t y, uint16_t color);
+void set_pixel(uint16_t x, uint16_t y, uint16_t color);
 
+/**
+ * @brief Clears frame buffer with color
+ * 
+ * @param[in] color  fill color
+ */
 void clear_buffer(uint16_t color);
+
+void set_pixel_location(int32_t x, int32_t y, uint16_t color, viewport_t* viewport);
 
 #ifdef __cplusplus
 }

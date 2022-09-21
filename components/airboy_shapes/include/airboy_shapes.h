@@ -1,5 +1,7 @@
 #pragma once
 
+#include "airboy_viewport.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,19 +22,28 @@ typedef struct {
     uint16_t color;
 } Line;
 
+typedef struct {
+    int x,
+        y,
+        rad;
+    uint16_t color;
+} circle;
+
 /**
  * @brief Draws line on framebuffer
  *
  * @param[in] l Line object
  */
-void draw_line(Line l);
+//void draw_line(Line l);
 
 /**
  * @brief Draws line on framebuffer
  *
  * @param[in] r Rectangle object
  */
-void draw_rect(Rectangle r);
+void draw_rect(Rectangle r, viewport_t* viewport);
+
+//void draw_circle(circle c);
 
 #ifdef __cplusplus
 }

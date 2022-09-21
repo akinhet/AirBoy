@@ -7,7 +7,7 @@
 #include "esp_log.h"
 
 #include "airboy_display.h"
-#include "airboy_display_primitives.h"
+#include "airboy_shapes.h"
 
 #define TASKNAME "main"
 
@@ -21,27 +21,28 @@ void app_main(void)
 	};
 
 	init_display(&config);
-	clear_buffer(0x4567);
-
-	Line line = {
-		.x0 = 20,
-		.y0 = 20,
-		.x1 = 50,
-		.y1 = 70,
-		.color = 0xC0FE
-	};
+	clear_buffer(0xFF);
 
 	Rectangle rect = {
 		.x = 0,
 		.y = 0,
-		.width = 20,
-		.height = 20,
-		.color = 0xC0FE
+		.width = 16,
+		.height = 16,
+		.color = 0x0360
 	};
 
-	draw_line(line);
-	draw_rect(rect);
+	draw_rect(rect, NULL);
 
-	draw_frame();
-	draw_line(line);
+	while (true)
+	{
+		for (int x = 0; x < 320; x+=16)
+			for (int y = 0; y < 240; y+=16)
+			{
+				rect.x = x; rect.y = y;
+				clear_buffer(0x0);
+				draw_rect(rect, NULL);
+				draw_frame();
+				vTaskDelay(10);
+			}
+	}
 }

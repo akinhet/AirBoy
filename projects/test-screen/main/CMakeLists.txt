@@ -1,4 +1,4 @@
 idf_component_register(SRCS 
                     "test-screen.c" 
                     INCLUDE_DIRS "."
-                    REQUIRES "airboy_display")
+                    REQUIRES "airboy_display" "airboy_shapes")

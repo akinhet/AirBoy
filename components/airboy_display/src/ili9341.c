@@ -16,6 +16,7 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_check.h"
+#include "airboy_display.h"
 
 static const char *TAG = "ili9341";
 
@@ -160,7 +161,7 @@ static const lcd_init_cmd_t vendor_specific_init[] = {
     /* 200 ms delay */
     {0x80, {250}, 1},
     /* Power contorl B, power control = 0, DC_ENA = 1 */
-    {0xCF, {0x00, 0xAA, 0XE0}, 3},
+    //{0xCF, {0x00, 0xAA, 0XE0}, 3},
     /* Power on sequence control,
      * cp1 keeps 1 frame, 1st frame enable
      * vcl = 0, ddvdh=3, vgh=1, vgl=2
@@ -176,8 +177,6 @@ static const lcd_init_cmd_t vendor_specific_init[] = {
     /* Power control A, Vcore=1.6V, DDVDH=5.6V */
     {0xCB, {0x39, 0x2C, 0x00, 0x34, 0x02}, 5},
     /* Pump ratio control, DDVDH=2xVCl */
-    {0xF7, {0x20}, 1},
-
     {0xF7, {0x20}, 1},
     /* Driver timing control, all=0 unit */
     {0xEA, {0x00, 0x00}, 2},
@@ -214,11 +213,15 @@ static const lcd_init_cmd_t vendor_specific_init[] = {
     /* Display function control */
     {0xB6, {0x0A, 0x02}, 2},
     /* Sleep out */
-    {LCD_CMD_SLPOUT, {0}, 0x80},
+    {LCD_CMD_SLPOUT, {0}, 0},
     /* Display on */
-    {LCD_CMD_DISPON, {0}, 0x80},
+    {LCD_CMD_DISPON, {0}, 0},
     /* Invert colors */
-    {LCD_CMD_INVOFF, {0}, 0},
+    #if DISPLAY_BUS_TYPE 
+	    {LCD_CMD_INVON, {0}, 0},
+	#else
+	    {LCD_CMD_INVOFF, {0}, 0},
+	#endif
 
     {0, {0}, 0xff},
 };

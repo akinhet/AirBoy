@@ -15,12 +15,13 @@ esp_err_t init_frame_buffer(const frame_buffer_config_t *config, frame_buffer_t 
     ret->buffer_count   = config->buffer_count;
     ret->current_buffer = 0;
 
+
     ret->buffer = heap_caps_malloc(sizeof(uint16_t*) * config->buffer_count, config->alloc_flags);
     for (size_t i = 0; i < config->buffer_count; i++)
+    {
         ret->buffer[i] = heap_caps_malloc(config->width * config->height * sizeof(uint16_t), config->alloc_flags);
-
-    for (size_t i = 0; i < config->buffer_count; i++)
         ESP_GOTO_ON_FALSE(ret->buffer[i], ESP_ERR_NO_MEM, err, TAG, "no mem for frame buffer %d", i);
+    } 
 
     return ESP_OK;
 err:

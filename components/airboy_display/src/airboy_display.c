@@ -119,7 +119,7 @@ void init_display(frame_buffer_config_t *buffer_config)
 
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = LCD_PIN_RESET,
-        .color_space    = ESP_LCD_COLOR_SPACE_BGR,
+        .color_space    = ESP_LCD_COLOR_SPACE_RGB,
         .bits_per_pixel = sizeof(uint16_t) * 8,
     };
 
@@ -127,17 +127,18 @@ void init_display(frame_buffer_config_t *buffer_config)
 	ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
+    //ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
 }
 
 void draw_frame()
 {
     #if DISPLAY_BUS_TYPE 
         // due to esp32 s3 spi bus buffer size the screen painting has to be split into smaller fragments (less than 32kb)
-        for (uint8_t y = 0; y < frame_buffer.height; y += 48)
-            esp_lcd_panel_draw_bitmap(panel_handle, 0, y, frame_buffer.width, y + 48, &(frame_buffer.buffer[frame_buffer.current_buffer][y * frame_buffer.width]));
+        for (uint8_t y = 0; y < frame_buffer.height; y += 40)
+            esp_lcd_panel_draw_bitmap(panel_handle, 0, y, frame_buffer.width, y + 40, &(frame_buffer.buffer[frame_buffer.current_buffer][y * frame_buffer.width]));
             
 	#else
-	    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, frame_buffer.width, frame_buffer.height, &(frame_buffer->buffer[frame_buffer.current_buffer]));
+	    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, frame_buffer.width, frame_buffer.height, &(frame_buffer.buffer[frame_buffer.current_buffer][0]));
 	#endif
 
     if (frame_buffer.buffer_count > 1)
@@ -152,10 +153,27 @@ void clear_buffer(uint16_t color)
     memset(frame_buffer.buffer[frame_buffer.current_buffer], color, frame_buffer.height * frame_buffer.width * sizeof(uint16_t));
 }
 
-void set_pixel_absolute(uint16_t x, uint16_t y, uint16_t color)
+void set_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
     if (y > frame_buffer.height) return;
     if (x > frame_buffer.width) return;
-
+ 
     frame_buffer.buffer[frame_buffer.current_buffer][frame_buffer.width * y + x] = color;
+}
+
+void set_pixel_location(int32_t x, int32_t y, uint16_t color, viewport_t* viewport)
+{
+    if (!viewport) set_pixel(x, y, color);
+    else
+    {
+        int32_t temp_x, temp_y;
+
+        if (x >= viewport->x && x <= viewport->x + viewport->w) temp_x = x - viewport->x - 1;
+        else return;
+
+        if (y >= viewport->y && y <= viewport->y + viewport->h) temp_y = y - viewport->y - 1;
+        else return;
+
+        set_pixel(temp_x, temp_y, color);
+    }
 }
