@@ -26,7 +26,7 @@ typedef struct {
 } Line;
 
 
-//static uint16_t frameBuffer[LCD_WIDTH * LCD_HEIGHT]; //Example of frame buffer declaration
+static uint16_t framebuffer[LCD_WIDTH * LCD_HEIGHT]; //Example of frame buffer declaration
 
 void setupDisplay(void);
 void frameDraw(uint16_t* buffer);
