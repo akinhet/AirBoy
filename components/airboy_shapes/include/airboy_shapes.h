@@ -9,8 +9,8 @@ extern "C" {
 typedef struct {
     int x,
         y,
-        width,
-        height;
+        w,
+        h;
     uint16_t color;
 } Rectangle;
 
@@ -41,7 +41,7 @@ typedef struct {
  *
  * @param[in] r Rectangle object
  */
-void draw_rect(Rectangle r, viewport_t* viewport);
+void draw_rect(Rectangle *r, viewport_t *viewport);
 
 //void draw_circle(circle c);
 

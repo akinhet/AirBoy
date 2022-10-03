@@ -26,23 +26,26 @@ void app_main(void)
 	Rectangle rect = {
 		.x = 0,
 		.y = 0,
-		.width = 16,
-		.height = 16,
+		.w = 16,
+		.h = 16,
 		.color = 0x0360
 	};
 
-	draw_rect(rect, NULL);
+	draw_rect(&rect, NULL);
 
 	while (true)
 	{
+		wait_for_end();
+		clear_buffer(0x0);
 		for (int x = 0; x < 320; x+=16)
 			for (int y = 0; y < 240; y+=16)
 			{
 				rect.x = x; rect.y = y;
-				clear_buffer(0x0);
-				draw_rect(rect, NULL);
-				draw_frame();
-				vTaskDelay(10);
+				draw_rect(&rect, NULL);
+				
 			}
+		draw_frame();
+		
+		//ESP_LOGE(TASKNAME, "dupa2");
 	}
 }

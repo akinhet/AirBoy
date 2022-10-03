@@ -17,6 +17,7 @@ typedef struct frame_buffer_t {
     uint16_t height;        // Frame buffer height
     uint8_t buffer_count;   // Number of frame buffers
     uint8_t current_buffer; // Current selected buffer
+    bool write_enable;      // 
 }frame_buffer_t;
 
 /**

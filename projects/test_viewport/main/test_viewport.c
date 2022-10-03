@@ -7,18 +7,20 @@
 #include "airboy_viewport.h"
 #include "airboy_shapes.h"
 
+#define TAG "dupa"
+
 void app_main(void)
 {
     uint8_t map[24][24] = {
         {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,7,7,7,7,7,7,7,7},
         {4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-        {4,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-        {4,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-        {4,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-        {4,0,4,0,0,0,0,5,5,5,5,5,5,5,5,5,7,7,0,7,7,7,7,7},
-        {4,0,5,0,0,0,0,5,0,5,0,5,0,5,0,5,7,0,0,0,7,7,7,1},
-        {4,0,6,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,1},
-        {4,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,7,7,1},
+        {4,0,1,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
+        {4,0,2,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
+        {4,0,3,0,0,0,4,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
+        {4,0,4,0,0,0,4,5,5,5,5,5,5,5,5,5,7,7,0,7,7,7,7,7},
+        {4,0,5,0,0,4,0,5,0,5,0,5,0,5,0,5,7,0,0,0,7,7,7,1},
+        {4,0,6,0,4,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,1},
+        {4,0,7,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,7,7,1},
         {4,0,7,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,1},
         {4,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,7,7,7,1},
         {4,0,0,0,0,0,0,5,5,5,5,0,5,5,5,5,7,7,7,7,7,7,7,1},
@@ -56,50 +58,49 @@ void app_main(void)
     init_viewport(&vp_config, &viewport);
 
     Rectangle rect = {
-        .x = 400,
-        .y = 120,
-        .width = 30,
-        .height = 30,
+        .x = 80,
+        .y = 0,
+        .w = 30,
+        .h = 30,
         .color = SWAP_BYTES(0xC0FE)
     };
 
     Rectangle rect2 = {
         .x = 80,
         .y = 210,
-        .width = 30,
-        .height = 30,
+        .w = 30,
+        .h = 30,
         .color = SWAP_BYTES(0xC0FE)
     };
 
-    Rectangle tile = {.x = 0, .y = 0, .width = 32, .height = 32, .color = SWAP_BYTES(0xAB54)};
+    Rectangle tile = {.x = 0, .y = 0, .w = 32, .h = 32, .color = SWAP_BYTES(0xAB54)};
 
     bool side = true;
     while(true)
     {
         clear_buffer(0);
 
-        draw_rect(rect2, NULL);
+        //draw_rect(&rect2, NULL);
 
-        if (side) viewport.x+=2;
-        else viewport.x-=2;
+        if (side) viewport.x+=1;
+        else viewport.x-=1;
 
-        if (viewport.x > 250) side = ! side;
+        if (viewport.x > 120) side = ! side;
         if (viewport.x < 0) side = ! side;
 
-
-
-        for (int x = (viewport.x >> 5); x < (((viewport.x + viewport.w) >> 5) + 1); x++)
-            for(int y = (viewport.y >> 5); y < (((viewport.y + viewport.h) >> 5) + 1); y++)
+        for (int x = 0; x < 24; x++)
+            for(int y = 0; y < 24; y++)
             {
                 if (map[x][y] == 0) continue;
                 tile.x = (x << 5); tile.y = (y << 5);
-                draw_rect(tile, &viewport);
+                draw_rect(&tile, &viewport);
             }
 
-        //draw_rect(rect, &viewport);
+        //ESP_LOGI(TAG, "%d", viewport.x);
+        //draw_rect(&rect, &viewport);
 
         draw_frame();
-        vTaskDelay(1);
+        //vTaskDelay(50);
     }
 
 }

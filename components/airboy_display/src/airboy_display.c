@@ -2,6 +2,8 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
@@ -20,6 +22,13 @@ static esp_lcd_panel_handle_t panel_handle = NULL;
 #define LCD_HOST SPI2_HOST
 #define LCD_CMD_BITS    8
 #define LCD_PARAM_BITS  8
+
+bool lcd_trans_done_cb(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t woken = false;
+    frame_buffer.write_enable = true;
+    return woken;
+}
 
 typedef enum {
 	LCD_PIN_DATA_0  =   4, // Data 0-7 pins
@@ -65,8 +74,9 @@ static void init_spi_bus(esp_lcd_panel_io_handle_t *io_handle)
         .lcd_cmd_bits      = LCD_CMD_BITS,
         .lcd_param_bits    = LCD_PARAM_BITS,
         .spi_mode          = 3, // fastest mode
-        .trans_queue_depth = 10,
-        .flags.octal_mode  = 1
+        .trans_queue_depth = 20,
+        .flags.octal_mode  = 1,
+        .on_color_trans_done = lcd_trans_done_cb,
     };
 
 	ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &io_config, io_handle));
@@ -100,6 +110,7 @@ static void init_i80_bus(esp_lcd_panel_io_handle_t *io_handle)
         },
         .lcd_cmd_bits = 8,
         .lcd_param_bits = 8,
+        .on_color_trans_done = lcd_trans_done_cb,
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i80(i80_bus, &io_config, io_handle));
 }
@@ -132,20 +143,26 @@ void init_display(frame_buffer_config_t *buffer_config)
 
 void draw_frame()
 {
-    #if DISPLAY_BUS_TYPE 
-        // due to esp32 s3 spi bus buffer size the screen painting has to be split into smaller fragments (less than 32kb)
-        for (uint8_t y = 0; y < frame_buffer.height; y += 40)
-            esp_lcd_panel_draw_bitmap(panel_handle, 0, y, frame_buffer.width, y + 40, &(frame_buffer.buffer[frame_buffer.current_buffer][y * frame_buffer.width]));
-            
-	#else
-	    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, frame_buffer.width, frame_buffer.height, &(frame_buffer.buffer[frame_buffer.current_buffer][0]));
-	#endif
+        #if DISPLAY_BUS_TYPE 
+        // due to esp32 s3 spi bus buffer size the screen painting has to be split into smaller fragments (less than 32kb)     
+            for (uint8_t y = 0; y < frame_buffer.height; y += 48)
+            {
+                esp_lcd_panel_draw_bitmap(panel_handle, 0, y, frame_buffer.width, y + 48, &(frame_buffer.buffer[frame_buffer.current_buffer][y * frame_buffer.width]));
+                frame_buffer.write_enable = false;
+            }    
+                
+        #else
+            esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, frame_buffer.width, frame_buffer.height, &(frame_buffer.buffer[frame_buffer.current_buffer][0]));
+            frame_buffer.write_enable = false;
+        #endif
 
-    if (frame_buffer.buffer_count > 1)
-    {
-        if (frame_buffer.current_buffer == (frame_buffer.buffer_count - 1)) frame_buffer.current_buffer = 0;
-        else frame_buffer.current_buffer++;
-    }
+        if (frame_buffer.buffer_count > 1)
+        {
+            if (frame_buffer.current_buffer == (frame_buffer.buffer_count - 1)) frame_buffer.current_buffer = 0;
+            else frame_buffer.current_buffer++;
+        }else{
+            while(!frame_buffer.write_enable) {}
+        }
 }
 
 void clear_buffer(uint16_t color)
