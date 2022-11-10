@@ -4,7 +4,7 @@
 typedef struct {
     int x, y;
     int width, height;
-    uint16_t *image;
+    const uint16_t *image;
     int collisionmask;
     int isOnFloor;
     int isOnCeiling;

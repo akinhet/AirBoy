@@ -286,7 +286,7 @@ void _plotLineHigh(int x0, int y0, int x1, int y1, uint16_t color, uint16_t* buf
 
 void drawLine(Line l, uint16_t* buffer)
 {
-	assert(l.x1 > 0 && l.y1 > 0 && l.x0 > 0 && l.y0 > 0);
+	assert(l.x1 >= 0 && l.y1 >= 0 && l.x0 >= 0 && l.y0 >= 0);
 	assert(l.x1 < LCD_WIDTH && l.y1 < LCD_HEIGHT && l.x0 < LCD_WIDTH && l.y0 < LCD_HEIGHT);
 
 	if (abs(l.y1 - l.y0) < abs(l.x1 - l.x0))
