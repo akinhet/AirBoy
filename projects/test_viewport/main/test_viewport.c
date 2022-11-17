@@ -6,6 +6,7 @@
 #include "airboy_display.h"
 #include "airboy_viewport.h"
 #include "airboy_shapes.h"
+#include "airboy_viewport_shapes.h"
 
 #define TAG "dupa"
 
@@ -58,10 +59,10 @@ void app_main(void)
     init_viewport(&vp_config, &viewport);
 
     Rectangle rect = {
-        .x = 80,
+        .x = 0,
         .y = 0,
-        .w = 30,
-        .h = 30,
+        .w = 60,
+        .h = 60,
         .color = SWAP_BYTES(0xC0FE)
     };
 
@@ -82,18 +83,18 @@ void app_main(void)
 
         //draw_rect(&rect2, NULL);
 
-        if (side) viewport.x+=1;
-        else viewport.x-=1;
+        if (side) viewport.x+=4;
+        else viewport.x-=4;
 
-        if (viewport.x > 120) side = ! side;
-        if (viewport.x < 0) side = ! side;
+        if (viewport.x >= 240) side = ! side;
+        if (viewport.x <= 0) side = ! side;
 
         for (int x = 0; x < 24; x++)
             for(int y = 0; y < 24; y++)
             {
                 if (map[x][y] == 0) continue;
                 tile.x = (x << 5); tile.y = (y << 5);
-                draw_rect(&tile, &viewport);
+                draw_rect_viewport(&tile, &viewport);
             }
 
         //ESP_LOGI(TAG, "%d", viewport.x);

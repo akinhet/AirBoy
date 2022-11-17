@@ -2,8 +2,8 @@
 #include "airboy_shapes.h"
 #include "airboy_display.h"
 
-#define max(x, y) (((x) > (y)) ? (x) : (y))
-#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) >= (y)) ? (x) : (y))
+#define min(x, y) (((x) <= (y)) ? (x) : (y))
 
 /*static void plot_line_low(int x0, int y0, int x1, int y1, uint16_t color)
 {
@@ -83,38 +83,12 @@ void draw_line(Line l)
     set_pixel_absolute(x0 - y, y0 + x, color);
 }*/
 
-void draw_rect(Rectangle *r, viewport_t* viewport)
+void draw_rect(Rectangle *r)
 {
-	int x, y, h, w;
-	x = r->x;
-	y = r->y;
-	h = r->h;
-	w = r->w;
+	if (r->x > 320 || r->y > 240 || r->x < 0 || r->y < 0) return;
 
-	if (viewport) 
-	{
-		x = r->x - viewport->x;
-		y = r->y - viewport->y;
-
-		if (x + w < 0 || y + h < 0) return;
-		if (x - w > viewport->w || y - h > viewport->h) return;
-
-		/*x = max(r->x, viewport->x);
-		w = min((r->w + r->x), (viewport->w + viewport->x));
-		w -= x;
-		if (w < 0) return;
-
-		h = min((r->h + r->y), (viewport->h + viewport->y));
-		y = max(r->y, viewport->y);
-		h -= y;
-		if (h < 0) return;
-
-		x = r->x - viewport->x;
-		y = r->y - viewport->y;*/
-	}
-
-	for (int row = y; row < y + h; row++)
-		for (int col = x; col < x + w; col++)
+	for (int row = r->y; row < r->y + r->h; row++)
+		for (int col = r->x; col < r->x + r->w; col++)
 			set_pixel(col, row, r->color);
 }
 

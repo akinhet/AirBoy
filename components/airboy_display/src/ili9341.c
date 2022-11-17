@@ -193,7 +193,7 @@ static const lcd_init_cmd_t vendor_specific_init[] = {
     /* Pixel format, 16bits/pixel for RGB/MCU interface */
     {0x3A, {0x55}, 1},  //*** INTERFACE PIXEL FORMAT: 0x66 -> 18 bit; 0x55 -> 16 bit
     /* Frame rate control, f=fosc, 70Hz fps */
-    {0xB1, {0x00, 0x1B}, 2},
+    {0xB1, {0x00, 0x11}, 2},
     /* Enable 3G, disabled */
     {0xF2, {0x00}, 1},
     /* Gamma set, curve 1 */

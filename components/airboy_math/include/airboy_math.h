@@ -7,6 +7,11 @@
 extern "C" {
 #endif
 
+#define SWAP_BYTES(value) ((((value) & 0xFFu) << 8u) | ((value) >> 8u))
+
+#define max(x, y) (((x) >= (y)) ? (x) : (y))
+#define min(x, y) (((x) <= (y)) ? (x) : (y))
+
 typedef struct vector2i {
     int32_t x,
             y;

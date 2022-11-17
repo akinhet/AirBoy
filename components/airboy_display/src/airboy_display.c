@@ -172,25 +172,5 @@ void clear_buffer(uint16_t color)
 
 void set_pixel(uint16_t x, uint16_t y, uint16_t color)
 {
-    if (y > frame_buffer.height) return;
-    if (x > frame_buffer.width) return;
- 
     frame_buffer.buffer[frame_buffer.current_buffer][frame_buffer.width * y + x] = color;
-}
-
-void set_pixel_location(int32_t x, int32_t y, uint16_t color, viewport_t* viewport)
-{
-    if (!viewport) set_pixel(x, y, color);
-    else
-    {
-        int32_t temp_x, temp_y;
-
-        if (x >= viewport->x && x <= viewport->x + viewport->w) temp_x = x - viewport->x - 1;
-        else return;
-
-        if (y >= viewport->y && y <= viewport->y + viewport->h) temp_y = y - viewport->y - 1;
-        else return;
-
-        set_pixel(temp_x, temp_y, color);
-    }
 }

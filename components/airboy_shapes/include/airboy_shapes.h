@@ -1,7 +1,5 @@
 #pragma once
 
-#include "airboy_viewport.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +39,7 @@ typedef struct {
  *
  * @param[in] r Rectangle object
  */
-void draw_rect(Rectangle *r, viewport_t *viewport);
+void draw_rect(Rectangle *r);
 
 //void draw_circle(circle c);
 

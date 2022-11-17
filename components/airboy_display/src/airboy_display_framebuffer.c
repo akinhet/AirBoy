@@ -16,7 +16,6 @@ esp_err_t init_frame_buffer(const frame_buffer_config_t *config, frame_buffer_t 
     ret->current_buffer = 0;
     ret->write_enable = true;
 
-
     ret->buffer = heap_caps_malloc(sizeof(uint16_t*) * config->buffer_count, config->alloc_flags);
     for (size_t i = 0; i < config->buffer_count; i++)
     {
