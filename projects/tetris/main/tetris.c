@@ -28,14 +28,14 @@ DEAD,
 bool bag[7];
 uint8_t bag_size = 7;
 
-static Sprite board[15][10];
+static Sprite *board[15][10];
 
 static struct {
 	int x, y;
 	int bx, by, bw, bh; // bounding box of the tetromino
 	piece type;
 	int rotation;
-	Sprite blocks[4];
+	Sprite *blocks[4];
 } tetromino;
 
 const uint8_t block_lookup[7][4][4][2] = {
@@ -180,12 +180,12 @@ void move_blocks()
 	tetromino.bw = tetromino.bh = 0;
 
 	for (int i = 0; i < 4; i++) {
-		tetromino.blocks[i].x = tetromino.x + block_lookup[tetromino.type][tetromino.rotation][i][0] * BLOCKSIZE;
-		tetromino.bx = tetromino.blocks[i].x < tetromino.bx ? tetromino.blocks[i].x : tetromino.bx;
-		tetromino.bw = tetromino.blocks[i].x + BLOCKSIZE > tetromino.bw ? tetromino.blocks[i].x + BLOCKSIZE : tetromino.bw;
-		tetromino.blocks[i].y = tetromino.y + block_lookup[tetromino.type][tetromino.rotation][i][1] * BLOCKSIZE;
-		tetromino.by = tetromino.blocks[i].y < tetromino.by ? tetromino.blocks[i].y : tetromino.by;
-		tetromino.bh = tetromino.blocks[i].y + BLOCKSIZE > tetromino.bh ? tetromino.blocks[i].y + BLOCKSIZE : tetromino.bh;
+		tetromino.blocks[i]->x = tetromino.x + block_lookup[tetromino.type][tetromino.rotation][i][0] * BLOCKSIZE;
+		tetromino.bx = tetromino.blocks[i]->x < tetromino.bx ? tetromino.blocks[i]->x : tetromino.bx;
+		tetromino.bw = tetromino.blocks[i]->x + BLOCKSIZE > tetromino.bw ? tetromino.blocks[i]->x + BLOCKSIZE : tetromino.bw;
+		tetromino.blocks[i]->y = tetromino.y + block_lookup[tetromino.type][tetromino.rotation][i][1] * BLOCKSIZE;
+		tetromino.by = tetromino.blocks[i]->y < tetromino.by ? tetromino.blocks[i]->y : tetromino.by;
+		tetromino.bh = tetromino.blocks[i]->y + BLOCKSIZE > tetromino.bh ? tetromino.blocks[i]->y + BLOCKSIZE : tetromino.bh;
 	}
 }
                                                                                                                                                                                                                                                                                                                             // GO FUCK YOURSELF
@@ -197,18 +197,20 @@ void set_blocks()
 	tetromino.rotation = 0;
 
 	for (int i = 0; i < 4; i++) {
-		memset(&tetromino.blocks[i], 0, sizeof(Sprite));
+		/* memset(&tetromino.blocks[i], 0, sizeof(Sprite)); */
+		tetromino.blocks[i] = malloc(sizeof(Sprite));
+		memset(tetromino.blocks[i], 0, sizeof(Sprite));
 
-		tetromino.blocks[i].width = BLOCKSIZE;
-		tetromino.blocks[i].height = BLOCKSIZE;
+		tetromino.blocks[i]->width = BLOCKSIZE;
+		tetromino.blocks[i]->height = BLOCKSIZE;
 
-		tetromino.blocks[i].image = blocks[tetromino.type];
+		tetromino.blocks[i]->image = blocks[tetromino.type];
 	}
 
 	move_blocks();
 
 	for (int i = 0; i < 4; i++)
-		if (board[tetromino.blocks[i].y / 16][tetromino.blocks[i].x / 16].x == tetromino.blocks[i].x && board[tetromino.blocks[i].y / 16][tetromino.blocks[i].x / 16].y == tetromino.blocks[i].y) {
+		if (board[tetromino.blocks[i]->y / 16][tetromino.blocks[i]->x / 16] != NULL) {
 			state = DEAD;
 			break;
 		}
@@ -224,8 +226,12 @@ void fill_bag()
 }
 
 
-void generate_piece()
+void generate_piece() // TODO: zasrane gówno nie działa
 {
+	tetromino.type = 3;
+	set_blocks();
+	return;
+
 	int dice_roll = (int) (1.0 * bag_size / 4294967295 * esp_random());
 	bag_size--;
 
@@ -263,18 +269,27 @@ void check_lines()
 	for (int i = 1; i < 15; i++) {
 		bool line = true;
 		for (int j = 0; j < 10; j++) {
-			if (board[i][j].x == 1337) {
+			if (board[i][j] == NULL) {
 				line = false;
 				break;
 			}
 		}
 		if (line) {
-			for (int j = i; j > 0; j--) {
-				memcpy(&board[j], &board[j-1], sizeof(Sprite) * 10);
+			/* for (int j = i; j > 0; j--) { */
+			/* 	memcpy(&board[j], &board[j-1], sizeof(Sprite) * 10); */
+			/* } */
+			for (int j = 0; j < 10; j++) {
+				free(board[i][j]);
+				board[i][j] = NULL;
 			}
-			for (int j = 0; j < 10; j++)
-				board[0][j].x = 1337;
-			/* memcpy(board[1], board[0], sizeof(Sprite) * 10); // TODO: cascading line deleting */
+			for (int j = i; j > 0; j--)
+				for (int k = 0; k < 10; k++)
+					board[j][k] = board[j-1][k];
+				/* memcpy(board[j][0], board[j+1][0], sizeof(Sprite) * 10); // TODO: cascading line deleting */
+			for (int j = 0; j < 10; j++) {
+				free(board[0][j]);
+				board[0][j] = NULL;
+			}
 		}
 	}
 }
@@ -284,7 +299,7 @@ bool is_colliding()
 {
 	move_blocks();
 	for (int i = 0; i < 4; i++) {
-		if (board[tetromino.blocks[i].y / 16][tetromino.blocks[i].x / 16].x != 1337) {
+		if (board[tetromino.blocks[i]->y / 16][tetromino.blocks[i]->x / 16] != NULL) {
 			return true;
 		}
 	}
@@ -296,7 +311,7 @@ void check_if_sitting()
 {
 	bool sit = false;
 	for (int i = 0; i < 4; i++) {
-		if (board[tetromino.blocks[i].y / 16 + 1][tetromino.blocks[i].x / 16].x != 1337 || tetromino.bh == LCD_HEIGHT) {
+		if (board[tetromino.blocks[i]->y / 16 + 1][tetromino.blocks[i]->x / 16] != NULL || tetromino.bh == LCD_HEIGHT) {
 			sit = true;
 			break;
 		}
@@ -304,7 +319,7 @@ void check_if_sitting()
 
 	if (sit) {
 		for (int i = 0; i < 4; i++) {
-			board[tetromino.blocks[i].y / 16][tetromino.blocks[i].x / 16] = tetromino.blocks[i];
+			board[tetromino.blocks[i]->y / 16][tetromino.blocks[i]->x / 16] = tetromino.blocks[i];
 			/* memcpy(&board[tetromino.blocks[i].x / 16][tetromino.blocks[i].y / 16 + 1], &tetromino.blocks[i], sizeof(Sprite)); */
 		}
 		generate_piece();
@@ -324,7 +339,7 @@ void app_main(void)
 
 	for (int i = 0; i < 15; i++)
 		for (int j = 0; j < 10; j++)
-			board[i][j].x = 1337;
+			board[i][j] = NULL;
 
 	generate_piece();
 
@@ -409,12 +424,13 @@ void app_main(void)
 			/* printf("x: %d y: %d bh: %d bw: %d x1: %d y1: %d\n", tetromino.x, tetromino.y, tetromino.bh, tetromino.bw, tetromino.blocks[0].y, tetromino.blocks[0].x); */
 			memset(framebuffer, 0, sizeof(framebuffer));
 			for (int i = 0; i < 4; i++) {
-				drawSprite(tetromino.blocks[i], framebuffer);
+				drawSprite(*tetromino.blocks[i], framebuffer);
 			}
 			for (int i = 0; i < 15; i++)
 				for (int j = 0; j < 10; j++)
-					if (board[i][j].x != -1)
-						drawSprite(board[i][j], framebuffer);
+					if (board[i][j] != NULL) {
+						drawSprite(*board[i][j], framebuffer);
+					}
 			Line border = {10*BLOCKSIZE, 0, 10*BLOCKSIZE, LCD_HEIGHT-1, 0xFFFE};
 			drawLine(border, framebuffer);
 
