@@ -221,8 +221,8 @@ void setupDisplay()
 
 void drawRect(Rectangle r, uint16_t* buffer)
 {
-	assert(r.x >= 0 && r.x + r.width < LCD_WIDTH );
-	assert(r.y >= 0 && r.y + r.height < LCD_HEIGHT );
+	assert(r.x >= 0 && r.x + r.width <= LCD_WIDTH );
+	assert(r.y >= 0 && r.y + r.height <= LCD_HEIGHT );
 
 	for (int row = r.y; row < r.y + r.height; row++)
 		for (int col = r.x; col < r.x + r.width; col++)

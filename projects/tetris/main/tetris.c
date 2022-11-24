@@ -193,7 +193,7 @@ void move_blocks()
 void set_blocks()
 {
 	tetromino.y = 0;
-	tetromino.x = 2 * BLOCKSIZE;
+	tetromino.x = (tetromino.type == O ? 4 : 3) * BLOCKSIZE;
 	tetromino.rotation = 0;
 
 	for (int i = 0; i < 4; i++) {
@@ -226,11 +226,11 @@ void fill_bag()
 }
 
 
-void generate_piece() // TODO: zasrane gówno nie działa
+void generate_piece() // TODO: investigate whether bag is working correctly
 {
-	tetromino.type = 3;
-	set_blocks();
-	return;
+	/* tetromino.type = 0; //TODO: change this after line deletion debugging */
+	/* set_blocks(); */
+	/* return; */
 
 	int dice_roll = (int) (1.0 * bag_size / 4294967295 * esp_random());
 	bag_size--;
@@ -275,17 +275,16 @@ void check_lines()
 			}
 		}
 		if (line) {
-			/* for (int j = i; j > 0; j--) { */
-			/* 	memcpy(&board[j], &board[j-1], sizeof(Sprite) * 10); */
-			/* } */
 			for (int j = 0; j < 10; j++) {
 				free(board[i][j]);
 				board[i][j] = NULL;
 			}
 			for (int j = i; j > 0; j--)
-				for (int k = 0; k < 10; k++)
+				for (int k = 0; k < 10; k++) {
 					board[j][k] = board[j-1][k];
-				/* memcpy(board[j][0], board[j+1][0], sizeof(Sprite) * 10); // TODO: cascading line deleting */
+					if (board[j][k] != NULL)
+						board[j][k]->y += BLOCKSIZE;
+				}
 			for (int j = 0; j < 10; j++) {
 				free(board[0][j]);
 				board[0][j] = NULL;
@@ -307,7 +306,7 @@ bool is_colliding()
 }
 
 
-void check_if_sitting()
+bool check_if_sitting()
 {
 	bool sit = false;
 	for (int i = 0; i < 4; i++) {
@@ -325,6 +324,7 @@ void check_if_sitting()
 		generate_piece();
 		check_lines();
 	}
+	return sit;
 }
 
 
@@ -357,8 +357,20 @@ void app_main(void)
 		prev_input = input;
 		input = pollInput();
 
+		//
+		// INPUT START
+		//
+		if (input.start && !prev_input.start) {
+			if (state == DEAD) {
+				for (int i = 0; i < 15; i++)
+					for (int j = 0; j < 10; j++)
+						board[i][j] = NULL;
+				generate_piece();
+			}
+			state = state == PLAY ? PAUSE : PLAY;
+		}
+
 		if (input.dpad_up && !prev_input.dpad_up && state == PLAY) {
-			/* tetromino.rotation = tetromino.rotation == 3 ? 0 : tetromino.rotation + 1; */
 			rotate_piece(true);
 			change = true;
 		}
@@ -371,8 +383,6 @@ void app_main(void)
 					tetromino.x += BLOCKSIZE;
 
 				change = true;
-				/* tetromino.x = tetromino.bx <= 0 ? tetromino.x : tetromino.x - BLOCKSIZE; */
-				/* change = true; */
 				left_counter = left_counter == 0 ? 6 : 2;
 				left_to = left_counter;
 			} else {
@@ -389,8 +399,6 @@ void app_main(void)
 					tetromino.x -= BLOCKSIZE;
 
 				change = true;
-				/* tetromino.x = tetromino.bw >= 10 * BLOCKSIZE ? tetromino.x : tetromino.x + BLOCKSIZE; */
-				/* change = true; */
 				right_counter = right_counter == 0 ? 6 : 2;
 				right_to = right_counter;
 			} else {
@@ -410,6 +418,17 @@ void app_main(void)
 			}
 		}
 
+		if (input.b && !prev_input.b && state == PLAY) {
+			while(!check_if_sitting()) {
+				tetromino.y = tetromino.bh == LCD_HEIGHT ? 0 : tetromino.y + BLOCKSIZE;
+				move_blocks();
+			}
+			change = true;
+		}
+		//
+		// INPUT END
+		//
+
 		if (frame % 10 == 0 && state == PLAY) {
 			check_if_sitting();
 			tetromino.y = tetromino.bh == LCD_HEIGHT ? 0 : tetromino.y + BLOCKSIZE;
@@ -421,7 +440,6 @@ void app_main(void)
 		if (change) {
 			move_blocks();
 
-			/* printf("x: %d y: %d bh: %d bw: %d x1: %d y1: %d\n", tetromino.x, tetromino.y, tetromino.bh, tetromino.bw, tetromino.blocks[0].y, tetromino.blocks[0].x); */
 			memset(framebuffer, 0, sizeof(framebuffer));
 			for (int i = 0; i < 4; i++) {
 				drawSprite(*tetromino.blocks[i], framebuffer);
@@ -431,18 +449,16 @@ void app_main(void)
 					if (board[i][j] != NULL) {
 						drawSprite(*board[i][j], framebuffer);
 					}
-			Line border = {10*BLOCKSIZE, 0, 10*BLOCKSIZE, LCD_HEIGHT-1, 0xFFFE};
-			drawLine(border, framebuffer);
+			Rectangle ui = {10*BLOCKSIZE, 0, LCD_WIDTH - 10*BLOCKSIZE, LCD_HEIGHT, 0x4d6b};
+			drawRect(ui, framebuffer);
 
 			change = false;
 		}
 
 		frameDraw(framebuffer);
 
-		frame = frame >= 29 ? 0 : frame + 1;
-		/* printf("frame: %2d, time: %lld, timer: %lld, delta: %lld\n", frame, time, esp_timer_get_time(), esp_timer_get_time() - time); fflush(stdout); */
-		/* vTaskDelay((16666 - (esp_timer_get_time() - time)) / portTICK_PERIOD_MS); */
-		long long int deltatime = 33333 - esp_timer_get_time() + time;
+		frame = frame >= 59 ? 0 : frame + 1;
+		long long int deltatime = 33333 - esp_timer_get_time() + time; // 30 FPS
 		vTaskDelay(deltatime > 0 ? deltatime / 1000 : 0 / portTICK_PERIOD_MS);
 	}
 }
