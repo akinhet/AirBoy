@@ -18,7 +18,7 @@ typedef struct frame_buffer_t {
     uint8_t buffer_count;   // Number of frame buffers
     uint8_t current_buffer; // Current selected buffer
     bool write_enable;      // 
-}frame_buffer_t;
+} frame_buffer_t;
 
 /**
  * @brief Frame buffer config structure
@@ -28,7 +28,7 @@ typedef struct frame_buffer_config_t {
     uint16_t width;       // Screen width
     uint16_t height;      // Screen height
     uint32_t alloc_flags; // Frame buffer alocation flags default: MALLOC_CAP_DMA
-}frame_buffer_config_t;
+} frame_buffer_config_t;
 
 
 /**
@@ -46,3 +46,4 @@ esp_err_t init_frame_buffer(const frame_buffer_config_t *config, frame_buffer_t 
 #ifdef __cplusplus
 }
 #endif
+
