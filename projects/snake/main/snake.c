@@ -48,6 +48,7 @@ enum {
 	EASY = 400000,
 	MEDIUM = 200000,
 	HARD = 100000,
+	EXTRAHARD = 50000,
 } difficulty = EASY;
 
 
@@ -99,6 +100,9 @@ void app_main(void)
 			heldstart = true;
 		} else
 			heldstart = false;
+
+		if (input.menu && state == MENU) 
+			difficulty = EXTRAHARD;
 
 		if (input.select && state == MENU) {
 			if (!heldselect) {
@@ -154,9 +158,11 @@ void app_main(void)
 				}
 			}
 
-			memset(framebuffer, 0, sizeof(framebuffer));
-			//memset(framebuffer, esp_random(), sizeof(framebuffer));
-			//esp_fill_random(framebuffer, sizeof(framebuffer));
+			if (difficulty == EXTRAHARD)
+				memset(framebuffer, esp_random(), sizeof(framebuffer));
+			else
+				memset(framebuffer, 0, sizeof(framebuffer));
+			/*esp_fill_random(framebuffer, sizeof(framebuffer));*/
 
 			player.array[0].image = &snake_tiles[direction];
 

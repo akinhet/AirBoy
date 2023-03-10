@@ -23,10 +23,21 @@ static enum {
 PLAY,
 PAUSE,
 DEAD,
-} state = PLAY;
+MENU,
+} state = MENU;
+
+static enum {
+EASY = 15,
+MEDIUM = 12,
+HARD = 10,
+} difficulty = EASY;
 
 bool bag[7];
 uint8_t bag_size = 7;
+
+int score = 0;
+piece next = -1;
+bool usedhold = 0;
 
 static Sprite *board[15][10];
 
@@ -228,10 +239,6 @@ void fill_bag()
 
 void generate_piece() // TODO: investigate whether bag is working correctly
 {
-	/* tetromino.type = 0; //TODO: change this after line deletion debugging */
-	/* set_blocks(); */
-	/* return; */
-
 	int dice_roll = (int) (1.0 * bag_size / 4294967295 * esp_random());
 	bag_size--;
 
@@ -242,7 +249,9 @@ void generate_piece() // TODO: investigate whether bag is working correctly
 			dice_roll--;
 	}
 	bag[dice_roll] = true;
-	tetromino.type = dice_roll;
+	
+	tetromino.type = next;
+	next = dice_roll;
 	set_blocks();
 
 	if (bag_size == 0)
@@ -266,6 +275,7 @@ void rotate_piece(bool clockwise)
 
 void check_lines()
 {
+	int numlines = 0;
 	for (int i = 1; i < 15; i++) {
 		bool line = true;
 		for (int j = 0; j < 10; j++) {
@@ -275,6 +285,7 @@ void check_lines()
 			}
 		}
 		if (line) {
+			numlines++;
 			for (int j = 0; j < 10; j++) {
 				free(board[i][j]);
 				board[i][j] = NULL;
@@ -291,6 +302,22 @@ void check_lines()
 			}
 		}
 	}
+	switch(numlines){
+		case 1:
+			score += 100;
+			break;
+		case 2:
+			score += 300;
+			break;
+		case 3:
+			score += 500;
+			break;
+		case 4:
+			score += 800;
+			break;
+		default:
+			break;
+	}
 }
 
 
@@ -298,7 +325,7 @@ bool is_colliding()
 {
 	move_blocks();
 	for (int i = 0; i < 4; i++) {
-		if (board[tetromino.blocks[i]->y / 16][tetromino.blocks[i]->x / 16] != NULL) {
+		if (board[tetromino.blocks[i]->y / BLOCKSIZE][tetromino.blocks[i]->x / BLOCKSIZE] != NULL) {
 			return true;
 		}
 	}
@@ -321,6 +348,7 @@ bool check_if_sitting()
 			board[tetromino.blocks[i]->y / 16][tetromino.blocks[i]->x / 16] = tetromino.blocks[i];
 			/* memcpy(&board[tetromino.blocks[i].x / 16][tetromino.blocks[i].y / 16 + 1], &tetromino.blocks[i], sizeof(Sprite)); */
 		}
+		usedhold = 0;
 		generate_piece();
 		check_lines();
 	}
@@ -341,7 +369,8 @@ void app_main(void)
 		for (int j = 0; j < 10; j++)
 			board[i][j] = NULL;
 
-	generate_piece();
+	/*generate_piece();*/
+	/*generate_piece();*/
 
 	long long int time;
 	int frame = 0;
@@ -361,18 +390,44 @@ void app_main(void)
 		// INPUT START
 		//
 		if (input.start && !prev_input.start) {
-			if (state == DEAD) {
+			if (state == DEAD)
+				state = MENU;
+			else if (state == MENU) {
 				for (int i = 0; i < 15; i++)
 					for (int j = 0; j < 10; j++)
 						board[i][j] = NULL;
 				generate_piece();
+				generate_piece();
+				state = PLAY;
 			}
-			state = state == PLAY ? PAUSE : PLAY;
+			else
+				state = state == PLAY ? PAUSE : PLAY;
+			change = true;
 		}
 
-		if (input.dpad_up && !prev_input.dpad_up && state == PLAY) {
+		if (input.a && !prev_input.a && state == PLAY) {
 			rotate_piece(true);
 			change = true;
+		}
+
+		/*if (input.dpad_left && !prev_input.dpad_left && state == MENU) {*/
+			/*change = true;*/
+			/*if (difficulty == EASY)*/
+				/*difficulty = HARD;*/
+			/*else if (difficulty == MEDIUM)*/
+				/*difficulty = EASY;*/
+			/*else*/
+				/*difficulty = MEDIUM;*/
+		/*}*/
+
+		if (input.select && !prev_input.select && state == MENU) {
+			change = true;
+			if (difficulty == EASY)
+				difficulty = MEDIUM;
+			else if (difficulty == MEDIUM)
+				difficulty = HARD;
+			else
+				difficulty = EASY;
 		}
 
 		if (input.dpad_left && state == PLAY) {
@@ -407,14 +462,17 @@ void app_main(void)
 		} else
 			right_counter = 0;
 
-		if (input.bumper_left && !prev_input.bumper_left && state == PLAY) {
-			piece temp = hold;
-			hold = tetromino.type;
-			if (temp == -1)
-				generate_piece();
-			else {
-				tetromino.type = temp;
-				set_blocks();
+		if (((input.bumper_left && !prev_input.bumper_left) || (input.bumper_right && !prev_input.bumper_right)) && state == PLAY) {
+			if (!usedhold) {
+				usedhold = 1;
+				piece temp = hold;
+				hold = tetromino.type;
+				if (temp == -1)
+					generate_piece();
+				else {
+					tetromino.type = temp;
+					set_blocks();
+				}
 			}
 		}
 
@@ -425,11 +483,21 @@ void app_main(void)
 			}
 			change = true;
 		}
+
+		if (input.dpad_down && state == PLAY) {
+			if ((frame % 12 == 4 || frame % 12 == 8) && state == PLAY) {
+				check_if_sitting();
+				tetromino.y = tetromino.bh == LCD_HEIGHT ? 0 : tetromino.y + BLOCKSIZE;
+				if (tetromino.bh == LCD_HEIGHT)
+					generate_piece();
+				change = true;	
+			}
+		}
 		//
 		// INPUT END
 		//
 
-		if (frame % 10 == 0 && state == PLAY) {
+		if (frame % difficulty == 0 && state == PLAY) {
 			check_if_sitting();
 			tetromino.y = tetromino.bh == LCD_HEIGHT ? 0 : tetromino.y + BLOCKSIZE;
 			if (tetromino.bh == LCD_HEIGHT)
@@ -438,19 +506,70 @@ void app_main(void)
 		}
 
 		if (change) {
-			move_blocks();
-
 			memset(framebuffer, 0, sizeof(framebuffer));
-			for (int i = 0; i < 4; i++) {
-				drawSprite(*tetromino.blocks[i], framebuffer);
+
+			if (state == PLAY) {
+				move_blocks();
+				for (int i = 0; i < 4; i++) {
+					drawSprite(*tetromino.blocks[i], framebuffer);
+				}
+				for (int i = 0; i < 15; i++)
+					for (int j = 0; j < 10; j++)
+						if (board[i][j] != NULL) {
+							drawSprite(*board[i][j], framebuffer);
+						}
 			}
-			for (int i = 0; i < 15; i++)
-				for (int j = 0; j < 10; j++)
-					if (board[i][j] != NULL) {
-						drawSprite(*board[i][j], framebuffer);
-					}
+
 			Rectangle ui = {10*BLOCKSIZE, 0, LCD_WIDTH - 10*BLOCKSIZE, LCD_HEIGHT, 0x4d6b};
 			drawRect(ui, framebuffer);
+
+			Rectangle scorerect = {10*BLOCKSIZE + 30, LCD_HEIGHT - 60, 100, 40, 0x0};
+			drawRect(scorerect, framebuffer);
+			char scorestr[20] = "";
+			sprintf(scorestr, "%06d", score);
+			drawText(10*BLOCKSIZE + 47, LCD_HEIGHT - 58, 2, 0xFBDE, scorestr, framebuffer);
+			drawText(10*BLOCKSIZE + 52, LCD_HEIGHT - 38, 2, 0xFBDE, "Score", framebuffer);
+
+			Rectangle nextrect = {10*BLOCKSIZE + 30, 20, 100, 60, 0x0};
+			drawRect(nextrect, framebuffer);
+			if (next != -1) 
+				for (int i = 0; i < 4; i++) {
+					Sprite nextsprite =	{10*BLOCKSIZE + 50 + block_lookup[next][0][i][0]*BLOCKSIZE, 25 + block_lookup[next][0][i][1]*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, blocks[next], 0,0,0,0,0,0,};
+					drawSprite(nextsprite, framebuffer);
+				}
+			drawText(10*BLOCKSIZE + 58, 62, 2, 0xFBDE, "Next", framebuffer);
+
+			Rectangle holdrect = {10*BLOCKSIZE + 30, 100, 100, 60, 0x0};
+			drawRect(holdrect, framebuffer);
+			if (hold != -1)
+				for (int i = 0; i < 4; i++) {
+					Sprite holdsprite =	{10*BLOCKSIZE + 50 + block_lookup[hold][0][i][0]*BLOCKSIZE, 105 + block_lookup[hold][0][i][1]*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, blocks[hold], 0,0,0,0,0,0,};
+					drawSprite(holdsprite, framebuffer);
+				}
+			drawText(10*BLOCKSIZE + 58, 142, 2, 0xFBDE, "Hold", framebuffer);
+
+			if (state == PAUSE) {
+				drawText(30, 80, 3, 0x9EF7, "Paused", framebuffer);
+				drawText(35, 150, 2, 0x9EF7, "Press", framebuffer);
+				drawText(35, 164, 2, 0x9EF7, "start", framebuffer);
+			}
+			if (state == DEAD) {
+				drawText(30, 80, 4, 0x9EF7, "Game", framebuffer);
+				drawText(30, 108, 4, 0x9EF7, "over", framebuffer);
+				drawText(35, 150, 2, 0x9EF7, "Press", framebuffer);
+				drawText(35, 164, 2, 0x9EF7, "start", framebuffer);
+			}
+			if (state == MENU) {
+				drawText(0, 80, 3, 0x9EF7, "MIJAKSPAD", framebuffer);
+				if (difficulty == EASY)
+					drawText(35, 140, 2, 0x9EF7, "> Easy <", framebuffer);
+				else if (difficulty == MEDIUM)
+					drawText(25, 140, 2, 0x9EF7, "> Medium <", framebuffer);
+				else
+					drawText(35, 140, 2, 0x9EF7, "> Hard <", framebuffer);
+				drawText(54, 172, 2, 0x9EF7, "Press", framebuffer);
+				drawText(54, 186, 2, 0x9EF7, "start", framebuffer);
+			}
 
 			change = false;
 		}

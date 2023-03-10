@@ -52,7 +52,7 @@
 	 - tic tac toe (sieciowe)
 	 - pacman
 	 - asteroids
-	 - tetris
+	 - tetris (hitreg popsuty)
 	 - arcanoid
 
 
