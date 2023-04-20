@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <esp_log.h>
+#include <driver/gpio.h>
+#include <driver/spi_master.h>
+#include <esp_timer.h>
+#include <esp_task_wdt.h>
+
+#include "display.h"
+#include "input.h"
+#include "macros.h"
+#include "textures.h"
+
+#define TASKNAME "main"
+
+#define mapWidth 24
+#define mapHeight 24
+#define mapSize 64
+
+#define texWidth 64
+#define texHeight 64
+
+Input input;
+static uint16_t framebuffer[LCD_WIDTH * LCD_HEIGHT];
+
+const int worldMap[mapWidth][mapHeight]=
+{
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
+const Rectangle roof = {0, 0, LCD_WIDTH, LCD_HEIGHT, 0xE318};
+
+double playerx = 22,
+	   playery = 12,
+	   playerdeltax = 0,
+	   playerdeltay = 0,
+	   playerdirx = 0,
+	   playerdiry = 1;
+
+
+void handle_input()
+{
+	input = pollInput();
+	if (input.dpad_right) {
+	}
+	if (input.dpad_left) {
+	}
+	if (input.dpad_up) {
+		playerx += playerdeltax;
+		playery += playerdeltay;
+	}
+	if (input.dpad_down) {
+		playerx -= playerdeltax;
+		playery -= playerdeltay;
+	}
+}
+
+
+void draw_player_view()
+{
+	
+}
+
+
+float distance2D(float x0, float y0, float x1, float y1)
+{
+	float dx = x1 - x0,
+		dy = y1 - y0;
+	return sqrt(dx*dx + dy*dy);
+}
+
+
+void app_main(void)
+{
+	ESP_LOGI(TASKNAME, "Hello, starting up");
+	setupDisplay();
+	setupInput();
+	uint64_t time = 0,
+		oldtime = 0;
+
+	while (true) {
+		time = esp_timer_get_time();
+		memset(framebuffer, 0, sizeof(framebuffer));
+		drawRect(roof, framebuffer);
+
+		handle_input();
+
+		frameDraw(framebuffer);
+		ESP_LOGI(TASKNAME, "%f", 1000000.0 / (time - oldtime));
+		vTaskDelay(16 / portTICK_PERIOD_MS);
+	}
+
+	ESP_LOGI(TASKNAME, "Something went HORRIBLY wrong (aka the game exited the main loop).");
+	esp_restart();
+}

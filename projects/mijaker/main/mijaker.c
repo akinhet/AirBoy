@@ -70,6 +70,9 @@ void app_main(void)
 	int timeF = esp_timer_get_time();
 	int oldTime = 0;
 	int frameTime;
+	uint64_t time = 0,
+		oldtime = 0;
+	double delta = 0;
 
 	int w = screenWidth;
 	int h = screenHeight;
@@ -125,11 +128,14 @@ void app_main(void)
 			float rayDirX1 = dirX + planeX;
 			float rayDirY1 = dirY + planeY;
 
-			int p = y - screenHeight / 2;
+			int p = (y - screenHeight) / 2;
+			if (p == 0)
+				ESP_LOGI(TASKNAME, "dupa");
 
 			float posZ = 0.5 * screenHeight;
 
 			float rowDistance = posZ / p;
+			/* float rowDistance = screenHeight / (2.0 * p); */
 
 			float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / screenWidth;
 			float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / screenWidth;
@@ -308,6 +314,11 @@ void app_main(void)
 			dirX *= 1.1;
 			dirY *= 1.1;
 		}
+
+		oldtime = time;
+		time = esp_timer_get_time();
+		delta = (time - oldtime) / 1000000.0;
+		ESP_LOGI(TASKNAME, "%f", 1.0 / delta);		// FIXME: work on the fps to get a stable 60
 	}
 
     ESP_LOGI(TASKNAME, "Something went HORRIBLY wrong (aka the game exited the main loop).");
