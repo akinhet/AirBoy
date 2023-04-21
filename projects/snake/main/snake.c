@@ -158,11 +158,12 @@ void app_main(void)
 				}
 			}
 
-			if (difficulty == EXTRAHARD)
-				memset(framebuffer, esp_random(), sizeof(framebuffer));
-			else
-				memset(framebuffer, 0, sizeof(framebuffer));
+			/*if (difficulty == EXTRAHARD)*/
+				/*memset(framebuffer, esp_random(), sizeof(framebuffer));*/
+			/*else*/
+				/*memset(framebuffer, 0, sizeof(framebuffer));*/
 			/*esp_fill_random(framebuffer, sizeof(framebuffer));*/
+			memcpy(framebuffer, background, sizeof(background));
 
 			player.array[0].image = &snake_tiles[direction];
 
@@ -218,7 +219,8 @@ void app_main(void)
 			drawText(50, 80, 4, 0xFBDE, "Paused", framebuffer);
 			drawText(50, 112, 1, 0xFBDE, "Press start to unpause", framebuffer);
 		} else if (state == MENU) {
-			memset(framebuffer, 0, sizeof(framebuffer));
+			/*memset(framebuffer, 0, sizeof(framebuffer));*/
+			memcpy(framebuffer, background, sizeof(background));
 			drawText(50, 80, 4, 0xFBDE, "Snake", framebuffer);
 			drawText(68, 128, 2, 0xFBDE, "Easy", framebuffer);
 			drawText(68, 152, 2, 0xFBDE, "Medium", framebuffer);
