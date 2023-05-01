@@ -137,7 +137,7 @@ void sendCommandParameters(uint8_t* data, int length)
 }
 
 
-void  frameDraw(uint16_t* buffer)
+void frameDraw(uint16_t* buffer)
 {
 	uint8_t drawWidth[] = { 0,0, UPPER_BYTE_16(LCD_WIDTH), LOWER_BYTE_16(LCD_WIDTH) };
 	sendCommand(COLUMN_ADDRESS_SET);
