@@ -44,6 +44,7 @@ const uint16_t program[] = {
 // uint16_t for performance reasons
 static uint16_t memory[4096] = {0};
 static uint16_t display[64][32] = {0};
+static uint16_t keys[16] = {0};
 const uint16_t font[80] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 	0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -191,7 +192,7 @@ static void cpu_callback(void *arg)
 						V[0xF] = 1;
 					break;
 				case 6:
-					V[regx] = V[regy] >> 1;
+					V[regx] = (V[regy] >> 1) & 0xFF;
 					V[0xF] = V[regy] & 1;
 					break;
 				case 7:
@@ -203,16 +204,76 @@ static void cpu_callback(void *arg)
 						V[0xF] = 1;
 					break;
 				case 0xE:
-					V[regx] = V[regy] << 1;
-					V[0xF] = V[regy] & 1;
+					V[regx] = (V[regy] << 1) & 0xFF;
+					V[0xF] = V[regy] & 0x80;
 					break;
 			}
+			break;
+		case 0x9:
+			if (V[regx] != V[regy])
+				PC += 2;
 			break;
 		case 0xA:
 			I = address;
 			break;
+		case 0xB:
+			PC = V[0] + address;
+			break;
+		case 0xC:
+			V[regx] = 1.0 * 255 / 4294967295 * esp_random();
+			V[regx] &= number;
+			break;
 		case 0xD:
 			draw_routine(regx, regy, shortnum);
+			break;
+		case 0xE: // TODO: keys
+			if (number == 0x9E) {
+				if (keys[V[regx]])
+					PC += 2;
+			} else if (number == 0xA1) {
+				if (!keys[V[regx]])
+					PC += 2;
+			}
+		case 0xF:
+			switch (number) {
+				case 0x07:
+					V[regx] = delay;
+					break;
+				case 0x0A: // TODO: read a key
+				case 0x15:
+					delay = V[regx];
+					break;
+				case 0x18:
+					sound = V[regx];
+					break;
+				case 0x1E:
+					I += V[regx];
+					break;
+				case 0x29:
+					I = FONT_ADDR + V[regx] * 5;
+					break;
+				case 0x33:
+					{
+						int input = V[regx];
+						for (int i = 2; i > 0; i--) {
+							memory[I + i] = input % 10;
+							input /= 10;
+						}
+					}
+					break;
+				case 0x55:
+					for (int i = 0; i <= regx; i++) {
+						memory[I] = V[i];
+						I++;
+					}
+					break;
+				case 0x65: // TODO: decide on ambiguity
+					for (int i = 0; i <= regx; i++) {
+						V[i] = memory[I];
+						I++;
+					}
+					break;
+			}
 			break;
 	}
 }
